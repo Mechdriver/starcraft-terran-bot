@@ -1,0 +1,18 @@
+package scout;
+
+import bwapi.*;
+
+public class ScoutManager {
+	Unit myScout;
+	
+	public ScoutManager(Unit scout) {
+		myScout = scout;
+		System.out.println("I have a scout! Whee.");
+		findBase();
+		
+	}
+	
+	private findBase() {
+		
+	}
+}

@@ -1,0 +1,9 @@
+package scout;
+
+import bwapi.*;
+
+public class ScoutManager {
+	public ScoutManager(Unit scout) {
+		System.out.println("I have a scout! Whee.");
+	}
+}

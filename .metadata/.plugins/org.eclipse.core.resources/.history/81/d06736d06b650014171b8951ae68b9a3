@@ -1,0 +1,26 @@
+package scout;
+
+import bwapi.*;
+import bwta.BWTA;
+import bwta.BaseLocation;
+
+public class ScoutManager {
+	Unit myScout;
+	
+	public ScoutManager(Unit scout) {
+		myScout = scout;
+		System.out.println("I have a scout! Whee.");
+		findBase();
+		
+	}
+	
+	private void findBase() {
+		for (BaseLocation baseL : BWTA.getBaseLocations()) {
+			search();
+		}
+	}
+	
+	private void serach() {
+		
+	}
+}
