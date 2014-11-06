@@ -1,0 +1,8 @@
+package building;
+
+import bwapi.*;
+
+
+public class BuildingManager {
+
+}

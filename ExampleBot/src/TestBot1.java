@@ -1,10 +1,14 @@
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.omg.CORBA.RepositoryIdHelper;
+
+import scout.ScoutManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Mirror;
 import bwapi.Player;
+import bwapi.Position;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
@@ -17,6 +21,16 @@ public class TestBot1{
     private Game game;
 
     private Player self;
+    
+    private Position EnemyBaseLoc = null;
+    
+    private ScoutManager scoutMan = null;
+    
+    private boolean haveFactory = false;
+    private boolean haveBarracks = false;
+    private boolean haveMarine = false;
+    private boolean reported = false;
+    
 
     public void run() {
         mirror.getModule().setEventListener(new DefaultBWListener() {
@@ -29,6 +43,17 @@ public class TestBot1{
             public void onUnitComplete(Unit unit) {
             	if (unit.getType().isBuilding() && buildings.contains(unit.getType())) {
             		buildings.remove(unit.getType());
+            	}
+            	
+            	if (unit.getType() == UnitType.Terran_Barracks) {
+            		haveBarracks = true;
+            	}
+            	
+            	if (unit.getType() == UnitType.Terran_Factory)
+                	haveFactory = true;
+            	
+            	if (unit.getType() == UnitType.Terran_Marine) {
+            		scoutMan = new ScoutManager(unit, game);          		
             	}
             }
             
@@ -44,6 +69,7 @@ public class TestBot1{
                 BWTA.analyze();
                 System.out.println("Map data ready");
                 
+                //game.setLocalSpeed(0);
             }
 
             @Override
@@ -52,8 +78,56 @@ public class TestBot1{
                 game.drawTextScreen(10, 10, "Playing as " + self.getName() + " - " + self.getRace());
 
                 StringBuilder units = new StringBuilder("My units:\n");
-
-                if (self.supplyTotal() - self.supplyUsed() <= 4 
+                
+                if (scoutMan != null && EnemyBaseLoc == null) {
+                	if (scoutMan.foundEnemy()) {
+                		scoutMan.primeScout();
+                		EnemyBaseLoc = scoutMan.getEnemyBaseLoc();                		
+                	}                
+                }
+                
+                if (EnemyBaseLoc != null && !reported) {
+                	if (scoutMan.distToEnemy(15) || scoutMan.getScout().isAttacking() || scoutMan.getScout().isUnderAttack()) {
+                		scoutMan.reportEnemy();
+                		reported = true;
+                	}
+                }
+                
+                /*if (!self.getUnits().contains(UnitType.Terran_Refinery) && self.minerals() >= 100 && !buildings.contains(UnitType.Terran_Refinery)) {
+            		for (Unit unit : self.getUnits()) {
+                		if (unit.getType().isWorker()) {
+                			if (build(unit, UnitType.Terran_Refinery)) {
+            					break;
+            				}
+                		}
+                	}
+                }*/
+                
+                if (!haveBarracks && self.minerals() >= 100 && !buildings.contains(UnitType.Terran_Barracks)) {
+            		for (Unit unit : self.getUnits()) {
+                		if (unit.getType().isWorker()) {
+                			if (unit.isCarryingMinerals()) {
+                				if (build(unit, UnitType.Terran_Barracks)) {
+                					break;
+                				}
+                			}
+                		}
+                	}
+                }
+                
+                /*if (!haveFactory && haveBarracks && self.minerals() >= 200 && self.gas() >= 100 && !buildings.contains(UnitType.Terran_Factory)) {
+            		for (Unit unit : self.getUnits()) {
+                		if (unit.getType().isWorker()) {
+                			if (unit.isCarryingMinerals()) {
+                				if (build(unit, UnitType.Terran_Factory)) {
+                					break;
+                				}
+                			}
+                		}
+                	}
+                }*/                              
+                
+                if (self.supplyTotal() - self.supplyUsed() <= 4 && haveBarracks
                 		&& self.minerals() >= 100 
                 		&& !buildings.contains(UnitType.Terran_Supply_Depot)) {
                 	for (Unit unit : self.getUnits()) {
@@ -65,13 +139,28 @@ public class TestBot1{
                 			}
                 		}
                 	}
-                }
+                }                                
+                
+                /*for (Unit myUnit : self.getUnits()) {
+                	if (myUnit.getType() == UnitType.Terran_Marine) {
+                		haveMarine = true;
+                		break;
+                	}
+                	else
+                		haveMarine = false;
+                }*/
+                
                 //iterate through my units
                 for (Unit myUnit : self.getUnits()) {
-                    units.append(myUnit.getType()).append(" ").append(myUnit.getTilePosition()).append("\n");
-
+                    units.append(myUnit.getType()).append(" ").append(myUnit.getTilePosition()).append("\n");                                                                               
+                    
+                    if (myUnit.getType() == UnitType.Terran_Barracks && haveBarracks && !haveMarine && self.minerals() >= 50 && self.supplyTotal() - self.supplyUsed() != 0) {
+                    	myUnit.train(UnitType.Terran_Marine);
+                    	haveMarine = true;
+                    }
+                    
                     //if there's enough minerals, train an SCV
-                    if (myUnit.getType() == UnitType.Terran_Command_Center && self.minerals() >= 50) {
+                    if (myUnit.getType() == UnitType.Terran_Command_Center && self.minerals() >= 50 && haveMarine) {
                         myUnit.train(UnitType.Terran_SCV);
                     }
 
@@ -92,7 +181,7 @@ public class TestBot1{
                         if (closestMineral != null) {
                             myUnit.gather(closestMineral, false);
                         }
-                    }
+                    }                                       
                 }
 
                 //draw my units on screen
@@ -112,9 +201,10 @@ public class TestBot1{
     }
 
     private boolean build(Unit worker, UnitType building) {
-    	System.out.println(buildings);
+    	//System.out.println(buildings);
     	TilePosition buildTile = 
-				getBuildTile(worker, UnitType.Terran_Supply_Depot, self.getStartLocation());
+				getBuildTile(worker, building, self.getStartLocation());
+    	//System.out.println(buildTile.toString());
     	if (buildTile != null) {
     		if (worker.build(buildTile, building)) {
     	    	buildings.add(building);
@@ -159,7 +249,10 @@ public class TestBot1{
  		maxDist += 2;
  	}
  	
- 	if (ret == null) game.printf("Unable to find suitable build position for "+buildingType.toString());
+ 	if (ret == null) {
+ 		game.printf("Unable to find suitable build position for "+buildingType.toString());
+ 		System.out.println("Unable to find suitable build position for "+buildingType.toString());
+ 	}
  	return ret;
  }
 
