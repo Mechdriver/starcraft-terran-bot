@@ -1,20 +1,18 @@
-INDEX VERSION 1.127+C:\Users\Zach\Desktop\AI\starcraft-terran-bot\.metadata\.plugins\org.eclipse.jdt.core
-4231789002.index
-1893689724.index
-793443024.index
-1136690339.index
-3983409053.index
-2795379753.index
-3088135294.index
+INDEX VERSION 1.127+C:\StarCraftStuff\starcraft-terran-bot\.metadata\.plugins\org.eclipse.jdt.core
+1818563445.index
+1995173708.index
+305854171.index
+3974580528.index
+163172794.index
+1697886153.index
+1498219845.index
+1115467115.index
+3065916431.index
+4108727661.index
+3133528496.index
 3373117608.index
-1913418516.index
-776465942.index
-3902870905.index
-3609842691.index
-3033181887.index
-4038888617.index
-111420056.index
-2196329304.index
-2631143054.index
-1789710168.index
-3337657089.index
+4155206848.index
+1105253753.index
+4173023868.index
+4041092966.index
+30765161.index
