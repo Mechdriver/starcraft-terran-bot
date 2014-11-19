@@ -5,6 +5,7 @@ import java.util.List;
 
 import overmind.ControlCenter;
 import resources.ResourceManager;
+import scout.ScoutManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Mirror;
@@ -33,6 +34,7 @@ public class TerranBotDriver {
 				// Add AI modules here
 				listenerModules.add(new ControlCenter(game));
 				listenerModules.add(new ResourceManager(game));
+				listenerModules.add(new ScoutManager(game));
 				
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onStart();
