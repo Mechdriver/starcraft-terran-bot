@@ -17,7 +17,7 @@ import bwapi.Unit;
 import bwapi.UnitType;
 import bwta.BWTA;
 
-public class TestBot1 {
+public class CopyOfTestBot1 {
 
 	private Mirror mirror = new Mirror();
 
@@ -60,7 +60,12 @@ public class TestBot1 {
 					resourceManager.giveWorker(unit);
 				}
 			}
-			
+
+			@Override
+			public void onUnitDiscover(Unit unit) {
+				resourceManager.onUnitDiscover(unit);
+			}
+
 			@Override
 			public void onStart() {
 				game = mirror.getGame();
@@ -106,7 +111,7 @@ public class TestBot1 {
 						EnemyBaseLoc = scoutMan.getEnemyBaseLoc();
 					}
 				}
-				
+
 				if (EnemyBaseLoc != null && !reported) {
 					if (scoutMan.distToEnemy(15)
 							|| scoutMan.getScout().isAttacking()
@@ -115,7 +120,7 @@ public class TestBot1 {
 						reported = true;
 					}
 				}
-				
+
 				fulfillRequests();
 
 				/*
@@ -126,18 +131,13 @@ public class TestBot1 {
 				 * (build(unit, UnitType.Terran_Refinery)) { break; } } } }
 				 */
 
-				/*if (!haveBarracks && self.minerals() >= 100
-						&& !buildings.contains(UnitType.Terran_Barracks)) {
-					for (Unit unit : self.getUnits()) {
-						if (unit.getType().isWorker()) {
-							if (unit.isCarryingMinerals()) {
-								if (build(unit, UnitType.Terran_Barracks)) {
-									break;
-								}
-							}
-						}
-					}
-				}*/
+				/*
+				 * if (!haveBarracks && self.minerals() >= 100 &&
+				 * !buildings.contains(UnitType.Terran_Barracks)) { for (Unit
+				 * unit : self.getUnits()) { if (unit.getType().isWorker()) { if
+				 * (unit.isCarryingMinerals()) { if (build(unit,
+				 * UnitType.Terran_Barracks)) { break; } } } } }
+				 */
 
 				/*
 				 * if (!haveFactory && haveBarracks && self.minerals() >= 200 &&
@@ -148,20 +148,15 @@ public class TestBot1 {
 				 * UnitType.Terran_Factory)) { break; } } } } }
 				 */
 
-				/*if (self.supplyTotal() - self.supplyUsed() <= 4 && haveBarracks
-						&& self.minerals() >= 100
-						&& !buildings.contains(UnitType.Terran_Supply_Depot)) {
-					for (Unit unit : self.getUnits()) {
-						if (unit.getType().isWorker()) {
-							if (!unit.isCarryingMinerals()
-									&& !unit.isCarryingGas()) {
-								if (build(unit, UnitType.Terran_Supply_Depot)) {
-									break;
-								}
-							}
-						}
-					}
-				}*/
+				/*
+				 * if (self.supplyTotal() - self.supplyUsed() <= 4 &&
+				 * haveBarracks && self.minerals() >= 100 &&
+				 * !buildings.contains(UnitType.Terran_Supply_Depot)) { for
+				 * (Unit unit : self.getUnits()) { if
+				 * (unit.getType().isWorker()) { if (!unit.isCarryingMinerals()
+				 * && !unit.isCarryingGas()) { if (build(unit,
+				 * UnitType.Terran_Supply_Depot)) { break; } } } } }
+				 */
 
 				/*
 				 * for (Unit myUnit : self.getUnits()) { if (myUnit.getType() ==
@@ -174,28 +169,6 @@ public class TestBot1 {
 					units.append(myUnit.getType()).append(" ")
 							.append(myUnit.getTilePosition()).append("\n");
 
-					// if it's a drone and it's idle, send it to the closest
-					// mineral patch
-					if (myUnit.getType().isWorker() && myUnit.isIdle()) {
-						Unit closestMineral = null;
-
-						// find the closest mineral
-						for (Unit neutralUnit : game.neutral().getUnits()) {
-							if (neutralUnit.getType().isMineralField()) {
-								if (closestMineral == null
-										|| myUnit.getDistance(neutralUnit) < myUnit
-												.getDistance(closestMineral)) {
-									closestMineral = neutralUnit;
-								}
-							}
-						}
-
-						// if a mineral patch was found, send the drone to
-						// gather it
-						if (closestMineral != null) {
-							myUnit.gather(closestMineral, false);
-						}
-					}
 				}
 
 				// draw my units on screen
@@ -484,12 +457,12 @@ public class TestBot1 {
 			return true;
 		}
 
-		private TestBot1 getOuterType() {
-			return TestBot1.this;
+		private CopyOfTestBot1 getOuterType() {
+			return CopyOfTestBot1.this;
 		}
 	}
 
 	public static void main(String... args) {
-		new TestBot1().run();
+		new CopyOfTestBot1().run();
 	}
 }
