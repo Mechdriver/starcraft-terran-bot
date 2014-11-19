@@ -2,13 +2,14 @@ package scout;
 
 import java.util.HashMap;
 
+import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Position;
 import bwapi.Unit;
 import bwta.BWTA;
 import bwta.BaseLocation;
 
-public class ScoutManager {
+public class ScoutManager extends DefaultBWListener {
 	private Unit myScout;
 	private Game myGame;
 	private Position enemyBaseLoc;
@@ -17,10 +18,36 @@ public class ScoutManager {
 	public ScoutManager(Unit scout, Game game) {
 		myScout = scout;
 		myGame = game;
-		System.out.println("I have a scout! Whee.");
 		findBase();
 		
 	}
+	
+	public ScoutManager(Game game) {
+		myGame = game;	
+	}
+	
+	@Override
+	public void onStart() {
+		System.out.println("Scout Manager initialized.");
+		//request scout
+		//make scout scout
+	}
+	
+	@Override
+	public void onFrame() {
+		System.out.println("Looking for the enemy.");				
+	}
+	/* Control Center Calls
+	//public void requestUnits(UnitType unit, Integer amount);
+	//public void requestBuilding(UnitType building)
+	*/
+	
+	public void setScout (Unit scout) {
+		myScout = scout;
+		findBase();
+	}
+	
+	//after base is found, send out another scout and start using gathered info to create an army
 	
 	private void findBase() {
 		for (BaseLocation baseL : BWTA.getBaseLocations()) {
