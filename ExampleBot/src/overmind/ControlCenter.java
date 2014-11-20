@@ -98,14 +98,6 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 	}
 
-	// TODO: remove when the command center will take care of this.
-	@Override
-	public void onUnitComplete(Unit unit) {
-		if (unit.getType().isWorker()) {
-			resourceManager.giveWorker(unit);
-		}
-	}
-
 	@Override
 	public void onFrame() {
 		for (Unit unit : self.getUnits()) {
