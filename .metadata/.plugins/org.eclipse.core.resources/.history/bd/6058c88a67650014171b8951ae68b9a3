@@ -1,7 +1,0 @@
-package scout;
-
-public class ScoutManager {
-	public ScoutManager(Unit scout) {
-		
-	}
-}

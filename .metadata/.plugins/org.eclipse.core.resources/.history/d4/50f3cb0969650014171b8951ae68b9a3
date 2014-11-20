@@ -1,9 +1,0 @@
-package scout;
-
-import bwapi.*;
-
-public class ScoutManager {
-	public ScoutManager(Unit scout) {
-		
-	}
-}

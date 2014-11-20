@@ -11,6 +11,7 @@ import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Mirror;
 import bwapi.Unit;
+import bwta.BWTA;
 
 
 public class TerranBotDriver {
@@ -32,6 +33,15 @@ public class TerranBotDriver {
 			public void onStart() {
 				game = mirror.getGame();
 				listenerModules = new ArrayList<DefaultBWListener>();
+				game.setLocalSpeed(5);
+				
+				// Use BWTA to analyze map
+				// This may take a few minutes if the map is processed first
+				// time!
+				System.out.println("Analyzing map...");
+				BWTA.readMap();
+				BWTA.analyze();
+				System.out.println("Map data ready");
 				
 				// Add AI modules here
 				listenerModules.add(new ControlCenter(game));
