@@ -15,13 +15,13 @@ public class ControlCenter extends DefaultBWListener {
 	public void onStart() {
 //		game.setTextSize(10);
 //		game.drawTextScreen(10, 10, "Control Center initialized.");
-		System.out.println("Control Center initialized.");
+		//System.out.println("Control Center initialized.");
 	}
 	
 	@Override
 	public void onFrame() {
 //		game.setTextSize(10);
 //		game.drawTextScreen(10, 10, "Control Center doin work.");
-		System.out.println("Control Center doin work.");
+		//System.out.println("Control Center doin work.");
 	}
 }

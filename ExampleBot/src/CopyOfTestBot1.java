@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import resource.ResourceManager;
+import resources.ResourceManager;
 import scout.ScoutManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;

@@ -35,7 +35,7 @@ public class ScoutManager extends DefaultBWListener {
 	
 	@Override
 	public void onFrame() {
-		System.out.println("Looking for the enemy.");				
+		//System.out.println("Looking for the enemy.");				
 	}
 	/* Control Center Calls
 	//public void requestUnits(UnitType unit, Integer amount);

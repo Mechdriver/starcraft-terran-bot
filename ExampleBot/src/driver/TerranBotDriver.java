@@ -6,9 +6,11 @@ import java.util.List;
 import overmind.ControlCenter;
 import resources.ResourceManager;
 import scout.ScoutManager;
+import build.BuildManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Mirror;
+import bwapi.Unit;
 
 
 public class TerranBotDriver {
@@ -33,8 +35,9 @@ public class TerranBotDriver {
 				
 				// Add AI modules here
 				listenerModules.add(new ControlCenter(game));
-				listenerModules.add(new ResourceManager(game));
+				listenerModules.add(new ResourceManager(mirror, game, game.self()));
 				listenerModules.add(new ScoutManager(game));
+				listenerModules.add(new BuildManager(game, game.self()));
 				
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onStart();
@@ -43,9 +46,64 @@ public class TerranBotDriver {
 			
 			@Override
 			public void onFrame() {
-				// Call all listener onFrame methods
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onFrame();
+				}
+			}
+			
+			@Override
+			public void onUnitCreate(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitCreate(unit);
+				}
+			}
+			
+			@Override
+			public void onUnitComplete(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitComplete(unit);
+				}
+			}
+
+			@Override
+			public void onUnitDestroy(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitDestroy(unit);
+				}
+			}
+
+			@Override
+			public void onUnitDiscover(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitDiscover(unit);
+				}
+			}
+
+			@Override
+			public void onEnd(boolean isWinner) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onEnd(isWinner);
+				}
+			}
+
+			@Override
+			public void onUnitEvade(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitEvade(unit);
+				}
+			}
+
+			@Override
+			public void onUnitHide(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitHide(unit);
+				}
+			}
+
+			@Override
+			public void onUnitShow(Unit unit) {
+				for (DefaultBWListener listener : listenerModules) {
+					listener.onUnitShow(unit);
 				}
 			}
 			
