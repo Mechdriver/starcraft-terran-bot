@@ -1,7 +1,10 @@
 package scout;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
+import overmind.ControlCenter;
 import build.BuildRequest;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
@@ -12,13 +15,15 @@ import bwta.BWTA;
 import bwta.BaseLocation;
 
 public class ScoutManager extends DefaultBWListener {
+	private ControlCenter motherBrain = null;
 	private Unit myScout = null;
 	private Game myGame;
+	private boolean request = false;
 	private boolean scouting = false; 
 	private boolean reported = false;
 	private Position enemyBaseLoc = null;
 	private HashMap<Integer, Unit> enemyUnitMemory = new HashMap<Integer, Unit>();
-	private BuildRequest scoutRequest = new BuildRequest(UnitType.Terran_Marine);
+	BuildRequest scoutReq;
 	
 	public ScoutManager(Unit scout, Game game) {
 		myScout = scout;
@@ -34,20 +39,28 @@ public class ScoutManager extends DefaultBWListener {
 	@Override
 	public void onStart() {
 		System.out.println("Scout Manager initialized.");
-		//request scout
-		//set scout
-	}
-	
-	@Override
-	public void onUnitComplete(Unit unit) {
-		if (myScout == null && unit.getType() == UnitType.Terran_Marine) {
-			setScout(unit);
-		}
-	}
+	}	
 	
 	@Override
 	public void onFrame() {
 		//System.out.println("A");
+		
+		if (motherBrain != null && !request) {
+			scoutReq = new BuildRequest(UnitType.Terran_Marine);
+			scoutReq = scoutReq.withUnitOutput(new ArrayList<Unit>());
+			motherBrain.submitRequest(scoutReq);
+			request = true;
+		}
+		
+		if (scoutReq != null && scoutReq.getUnitOutput().size() > 0) {
+			ArrayList<Unit> list = (ArrayList<Unit>)scoutReq.getUnitOutput();
+			
+			Unit unit = list.get(0);
+			
+			list.remove(0);
+			
+			setScout(unit);
+		}
 		
 		if (myScout != null && !scouting) {
 			if (enemyBaseLoc == null) {
@@ -76,8 +89,8 @@ public class ScoutManager extends DefaultBWListener {
 			myScout = null;
 			scouting = false;
 			reported = false;
-			//request scout
-			//set scout
+			scoutReq = null;
+			request = false;			
 		}
 	}
 	/* Control Center Calls
@@ -85,7 +98,11 @@ public class ScoutManager extends DefaultBWListener {
 	//public void requestBuilding(UnitType building)
 	*/
 	
-	public void setScout (Unit scout) {
+	public void setControlCenter(ControlCenter control) {
+		motherBrain = control;
+	}
+	
+	public void setScout(Unit scout) {
 		myScout = scout;	
 	}
 	

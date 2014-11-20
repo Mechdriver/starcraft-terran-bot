@@ -49,7 +49,7 @@ public class TerranBotDriver {
 				ControlCenter control = new ControlCenter(game, resources, scouting, building);
 				
 				resources.setControlCenter(control);
-				// scouting.setControlCenter(control);
+				scouting.setControlCenter(control);
 				building.setControlCenter(control);
 				
 				listenerModules.add(control);

@@ -42,15 +42,15 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
 				.withBuildLocation(self.getStartLocation()));
-		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Refinery)
-				.withBuildLocation(self.getStartLocation()));
+		//buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Refinery)
+		//		.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
 				.withBuildLocation(self.getStartLocation()));
-		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+		/*buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
@@ -95,7 +95,7 @@ public class ControlCenter extends DefaultBWListener {
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
+				.withBuildLocation(self.getStartLocation()));*/
 	}
 
 	// TODO: remove when the command center will take care of this.
