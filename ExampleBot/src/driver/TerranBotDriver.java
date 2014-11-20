@@ -11,6 +11,7 @@ import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Mirror;
 import bwapi.Unit;
+import bwta.BWTA;
 
 
 public class TerranBotDriver {
@@ -32,6 +33,15 @@ public class TerranBotDriver {
 			public void onStart() {
 				game = mirror.getGame();
 				listenerModules = new ArrayList<DefaultBWListener>();
+				game.setLocalSpeed(5);
+				
+				// Use BWTA to analyze map
+				// This may take a few minutes if the map is processed first
+				// time!
+				System.out.println("Analyzing map...");
+				BWTA.readMap();
+				BWTA.analyze();
+				System.out.println("Map data ready");
 				
 				ResourceManager resources = new ResourceManager(mirror, game, game.self());
 				ScoutManager scouting = new ScoutManager(game);
@@ -39,7 +49,7 @@ public class TerranBotDriver {
 				ControlCenter control = new ControlCenter(game, resources, scouting, building);
 				
 				resources.setControlCenter(control);
-				// scouting.setControlCenter(control);
+				scouting.setControlCenter(control);
 				building.setControlCenter(control);
 				
 				listenerModules.add(control);

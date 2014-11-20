@@ -22,6 +22,7 @@ public class BuildManager extends DefaultBWListener {
 
 	private Deque<BuildRequest> pendingRequests = new LinkedList<BuildRequest>();
 	private List<StartedBuildRequest> startedRequests = new ArrayList<StartedBuildRequest>();
+	private List<StartedBuildRequest> finishedRequests = new ArrayList<StartedBuildRequest>();
 
 	private int startedMinerals = 0;
 	private int startedGas = 0;
@@ -48,11 +49,8 @@ public class BuildManager extends DefaultBWListener {
 			if (request.getRequest().getUnit().equals(unit.getType())) {
 				pendingRequests.remove(request.getRequest());
 				startedRequests.remove(request);
-
-				// Put the unit where it was requested to go.
-				if (request.getRequest().getUnitOutput() != null) {
-					request.getRequest().getUnitOutput().add(unit);
-				}
+				
+				finishedRequests.add(request);	
 
 				if (unit.getType().isBuilding()) {
 					startedMinerals -= request.getRequest().getUnit()
@@ -62,6 +60,21 @@ public class BuildManager extends DefaultBWListener {
 				return;
 			}
 		}
+	}
+	
+	@Override
+	public void onUnitComplete(Unit unit) {
+		ArrayList<StartedBuildRequest> tempList = new ArrayList<StartedBuildRequest>(finishedRequests);
+		for (StartedBuildRequest request : finishedRequests) {
+			if (request.getRequest().getUnit().equals(unit.getType())) {
+				// Put the unit where it was requested to go.
+				if (request.getRequest().getUnitOutput() != null) {
+					request.getRequest().getUnitOutput().add(unit);
+				}
+				tempList.remove(request);
+			}
+		}
+		finishedRequests = new ArrayList<StartedBuildRequest>(tempList);
 	}
 
 	public boolean submitBuildRequest(BuildRequest request) {
