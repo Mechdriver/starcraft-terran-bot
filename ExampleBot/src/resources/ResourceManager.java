@@ -50,7 +50,6 @@ public class ResourceManager extends DefaultBWListener {
 		for (ResourceInfo resource : minerals) {
 			for (Unit worker : resource.workers) {
 				if (worker.isIdle()) {
-					System.out.println("Worker was idle");
 					System.out.println("Sending " + worker.getType() + " to gather " + resource.resource.getType());
 					worker.gather(resource.resource);
 				}

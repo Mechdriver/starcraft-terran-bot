@@ -25,7 +25,8 @@ public class StartedBuildRequest {
 	}
 	
 	public boolean isTimedOut() {
-		return resubmitCountdown-- <= 0;
+		// Only buildings will time out
+		return !request.getUnit().isBuilding() || resubmitCountdown-- <= 0;
 	}
 
 	public BuildRequest getRequest() {
