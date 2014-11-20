@@ -1,27 +1,139 @@
 package overmind;
 
+import resources.ResourceManager;
+import scout.ScoutManager;
+import build.BuildManager;
+import build.BuildRequest;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
+import bwapi.Player;
+import bwapi.Unit;
+import bwapi.UnitType;
 
 public class ControlCenter extends DefaultBWListener {
 	private Game game;
-	
-	
-	public ControlCenter(Game game) {
+	private Player self;
+
+	private ResourceManager resourceManager;
+	private ScoutManager scoutManager;
+	private BuildManager buildManager;
+
+	public ControlCenter(Game game, ResourceManager resourceManager,
+			ScoutManager scoutManager, BuildManager buildManager) {
 		this.game = game;
+		this.self = game.self();
+		this.resourceManager = resourceManager;
+		this.scoutManager = scoutManager;
+		this.buildManager = buildManager;
 	}
-	
+
 	@Override
 	public void onStart() {
-//		game.setTextSize(10);
-//		game.drawTextScreen(10, 10, "Control Center initialized.");
-		//System.out.println("Control Center initialized.");
+		// game.setTextSize(10);
+		// game.drawTextScreen(10, 10, "Control Center initialized.");
+		// System.out.println("Control Center initialized.");
+		
+		// TODO: lol. Don't just hardcode everything
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Refinery)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
 	}
-	
+
+	// TODO: remove when the command center will take care of this.
+	@Override
+	public void onUnitComplete(Unit unit) {
+		if (unit.getType().isWorker()) {
+			resourceManager.giveWorker(unit);
+		}
+	}
+
 	@Override
 	public void onFrame() {
-//		game.setTextSize(10);
-//		game.drawTextScreen(10, 10, "Control Center doin work.");
-		//System.out.println("Control Center doin work.");
+		for (Unit unit : self.getUnits()) {
+			if (unit.getType().isWorker() 
+					&& unit.isIdle() 
+					&& unit.isCompleted()) {
+				resourceManager.giveWorker(unit);
+			}
+		}
+	}
+
+	public Unit requestUnit(UnitType unitType) {
+		Unit requestedUnit = null;
+		requestedUnit = resourceManager.takeUnit(unitType);
+		return requestedUnit;
+	}
+	
+	public boolean submitRequest(BuildRequest request) {
+		// TODO: checks if we can actually build the thing, after the 
+		// current build queue has been done.
+		return buildManager.submitBuildRequest(request);
+	}
+	
+	public boolean releaseUnit(Unit unit) {
+		if (unit.getType() == UnitType.Terran_SCV) {
+			resourceManager.giveWorker(unit);
+			return true;
+		}
+		return false;
 	}
 }

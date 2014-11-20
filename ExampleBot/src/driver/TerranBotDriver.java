@@ -43,11 +43,19 @@ public class TerranBotDriver {
 				BWTA.analyze();
 				System.out.println("Map data ready");
 				
-				// Add AI modules here
-				listenerModules.add(new ControlCenter(game));
-				listenerModules.add(new ResourceManager(mirror, game, game.self()));
-				listenerModules.add(new ScoutManager(game));
-				listenerModules.add(new BuildManager(game, game.self()));
+				ResourceManager resources = new ResourceManager(mirror, game, game.self());
+				ScoutManager scouting = new ScoutManager(game);
+				BuildManager building = new BuildManager(game, game.self());
+				ControlCenter control = new ControlCenter(game, resources, scouting, building);
+				
+				resources.setControlCenter(control);
+				// scouting.setControlCenter(control);
+				building.setControlCenter(control);
+				
+				listenerModules.add(control);
+				listenerModules.add(resources);
+				listenerModules.add(scouting);
+				listenerModules.add(building);
 				
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onStart();

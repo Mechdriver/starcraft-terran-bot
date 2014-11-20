@@ -2,9 +2,11 @@ package build;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import overmind.ControlCenter;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Player;
@@ -16,6 +18,7 @@ public class BuildManager extends DefaultBWListener {
 
 	private Game game;
 	private Player self;
+	private ControlCenter control;
 
 	private Deque<BuildRequest> pendingRequests = new LinkedList<BuildRequest>();
 	private List<StartedBuildRequest> startedRequests = new ArrayList<StartedBuildRequest>();
@@ -27,77 +30,29 @@ public class BuildManager extends DefaultBWListener {
 		this.game = game;
 		this.self = self;
 	}
-
-	@Override
-	public void onStart() {
-		submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
-		submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
-				.withBuildLocation(self.getStartLocation()));
+	
+	public void setControlCenter(ControlCenter control) {
+		this.control = control;
 	}
 
 	@Override
 	public void onUnitCreate(Unit unit) {
 		System.out.println("New unit " + unit.getType());
+		
+		// WTF, refinery, why don't you show up???
+		if (unit.getType() == UnitType.Terran_Refinery) {
+			System.out.println("HOLY COW IT'S A REFINERY");
+		}
 
 		for (StartedBuildRequest request : startedRequests) {
 			if (request.getRequest().getUnit().equals(unit.getType())) {
 				pendingRequests.remove(request.getRequest());
 				startedRequests.remove(request);
+
+				// Put the unit where it was requested to go.
+				if (request.getRequest().getUnitOutput() != null) {
+					request.getRequest().getUnitOutput().add(unit);
+				}
 
 				if (unit.getType().isBuilding()) {
 					startedMinerals -= request.getRequest().getUnit()
@@ -116,6 +71,19 @@ public class BuildManager extends DefaultBWListener {
 		}
 		return pendingRequests.offer(request);
 	}
+	
+	public boolean removeBuildRequest(UnitType unitType) {
+		// Remove the last added unit of a type
+		Iterator<BuildRequest> it = pendingRequests.descendingIterator();
+		while(it.hasNext()) {
+			BuildRequest request = it.next();
+			if (request.getUnit() == unitType) {
+				it.remove();
+				return true;
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public void onFrame() {
@@ -130,12 +98,11 @@ public class BuildManager extends DefaultBWListener {
 			message.append(req.getRequest().getUnit() + "\n");
 		}
 		game.drawTextScreen(0, 25, message.toString());
-
-		game.drawTextScreen(200, 25, "Started minerals: " + startedMinerals 
-				+ "\nStarted gas: " + startedGas);
 		
+		// Check for requests that need to be restarted
 		for (StartedBuildRequest request : startedRequests) {
 			if (request.isTimedOut()) {
+				System.out.println("Request for " + request.getRequest().getUnit() + " timed out.");
 				if (request.getRequest().getUnit().isBuilding()) {
 					TilePosition location = getBuildTile(request.getWorker(), 
 							request.getRequest().getUnit(), request.getRequest().getBuildLocation());
@@ -153,6 +120,7 @@ public class BuildManager extends DefaultBWListener {
 		if (request == null) {
 			return;
 		}
+
 		for (StartedBuildRequest started : startedRequests) {
 			if (started.getRequest().equals(request)) {
 				return;
@@ -163,13 +131,12 @@ public class BuildManager extends DefaultBWListener {
 				|| unitToBuild.mineralPrice() > (self.minerals() - startedMinerals)) {
 			return;
 		}
+		System.out.println("Trying to build " + request.getUnit());
 		if (!unitToBuild.isBuilding()) {
 			// Train a unit
 			for (Unit unit : self.getUnits()) {
 				// TODO: Don't just build in the first building that'll take the
 				// unit, balance it out more
-				// unit.canIssueCommand(new UnitCommand(0));
-				// unit.
 				if (unit.train(unitToBuild)) {
 					System.out.println("Started: " + unitToBuild);
 					
@@ -183,18 +150,7 @@ public class BuildManager extends DefaultBWListener {
 			return;
 		}
 		// Build a building
-		Unit worker = null;
-		for (Unit unit : self.getUnits()) {
-			if (unit.getType().isWorker()) {
-				// Grab a miner
-				if (!unit.isCarryingMinerals()
-						&& !unit.isCarryingGas()
-						&& (unit.isGatheringGas() || unit.isGatheringMinerals())) {
-					worker = unit;
-					break;
-				}
-			}
-		}
+		Unit worker = control.requestUnit(UnitType.Terran_SCV);
 		if (worker == null) {
 			return;
 		}
@@ -206,8 +162,6 @@ public class BuildManager extends DefaultBWListener {
 		TilePosition buildTile = getBuildTile(worker, request.getUnit(),
 				requestLocation);
 		if (buildTile != null) {
-			// System.out.println("Building " + request.getUnit() + " at " +
-			// buildTile);
 			System.out.println("Sending " + worker.getType() + " to build "
 					+ request.getUnit() + " at " + buildTile);
 			if (worker.build(buildTile, request.getUnit())) {
