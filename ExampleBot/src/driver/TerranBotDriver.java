@@ -1,7 +1,9 @@
 package driver;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import overmind.ControlCenter;
 import resources.ResourceManager;
@@ -11,6 +13,7 @@ import bwapi.DefaultBWListener;
 import bwapi.Game;
 import bwapi.Mirror;
 import bwapi.Unit;
+import bwapi.UnitType;
 import bwta.BWTA;
 
 
@@ -18,6 +21,8 @@ public class TerranBotDriver {
 	List<DefaultBWListener> listenerModules;
 	private Game game;
 	private Mirror mirror;
+	Set<Integer> createdRefineriesHack;
+	Set<Integer> completedRefineriesHack;
 	
 	public static void main(String[] args) {
 		new TerranBotDriver().run();
@@ -34,6 +39,9 @@ public class TerranBotDriver {
 				game = mirror.getGame();
 				listenerModules = new ArrayList<DefaultBWListener>();
 				game.setLocalSpeed(5);
+				
+				createdRefineriesHack = new HashSet<Integer>();
+				completedRefineriesHack = new HashSet<Integer>();
 				
 				// Use BWTA to analyze map
 				// This may take a few minutes if the map is processed first
@@ -64,6 +72,26 @@ public class TerranBotDriver {
 			
 			@Override
 			public void onFrame() {
+				for (Unit unit : game.self().getUnits()) {
+					if (unit.getType() != UnitType.Terran_Refinery) {
+						continue;
+					}
+					int id = unit.getID();
+					if (completedRefineriesHack.contains(id) 
+							|| (createdRefineriesHack.contains(id) 
+									&& !unit.isCompleted())) {
+						continue;
+					}
+					if (!createdRefineriesHack.contains(id)) {
+						createdRefineriesHack.add(id);
+						onUnitCreate(unit);
+					} else {
+						createdRefineriesHack.remove(id);
+						completedRefineriesHack.add(id);
+						onUnitComplete(unit);
+					}
+				}
+
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onFrame();
 				}

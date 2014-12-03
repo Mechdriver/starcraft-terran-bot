@@ -31,7 +31,7 @@ public class BuildManager extends DefaultBWListener {
 		this.game = game;
 		this.self = self;
 	}
-	
+
 	public void setControlCenter(ControlCenter control) {
 		this.control = control;
 	}
@@ -39,42 +39,45 @@ public class BuildManager extends DefaultBWListener {
 	@Override
 	public void onUnitCreate(Unit unit) {
 		System.out.println("New unit " + unit.getType());
-		
-		// WTF, refinery, why don't you show up???
-		if (unit.getType() == UnitType.Terran_Refinery) {
-			System.out.println("HOLY COW IT'S A REFINERY");
-		}
 
+		// Find the request the unit fulfills.
+		StartedBuildRequest started = null;
 		for (StartedBuildRequest request : startedRequests) {
 			if (request.getRequest().getUnit().equals(unit.getType())) {
-				pendingRequests.remove(request.getRequest());
-				startedRequests.remove(request);
-				
-				finishedRequests.add(request);	
+				started = request;
+			}
+		}
 
-				if (unit.getType().isBuilding()) {
-					startedMinerals -= request.getRequest().getUnit()
-							.mineralPrice();
-					startedGas -= request.getRequest().getUnit().gasPrice();
-				}
-				return;
+		// Remove the request
+		if (started != null) {
+			startedRequests.remove(started);
+
+			finishedRequests.add(started);
+
+			if (unit.getType().isBuilding()) {
+				startedMinerals -= started.getRequest().getUnit()
+						.mineralPrice();
+				startedGas -= started.getRequest().getUnit().gasPrice();
 			}
 		}
 	}
-	
+
 	@Override
 	public void onUnitComplete(Unit unit) {
-		ArrayList<StartedBuildRequest> tempList = new ArrayList<StartedBuildRequest>(finishedRequests);
+		StartedBuildRequest completed = null;
 		for (StartedBuildRequest request : finishedRequests) {
 			if (request.getRequest().getUnit().equals(unit.getType())) {
-				// Put the unit where it was requested to go.
-				if (request.getRequest().getUnitOutput() != null) {
-					request.getRequest().getUnitOutput().add(unit);
-				}
-				tempList.remove(request);
+				completed = request;
+				break;
 			}
 		}
-		finishedRequests = new ArrayList<StartedBuildRequest>(tempList);
+		if (completed != null) {
+			// Put the unit where it was requested to go.
+			if (completed.getRequest().getUnitOutput() != null) {
+				completed.getRequest().getUnitOutput().add(unit);
+			}
+			finishedRequests.remove(completed);
+		}
 	}
 
 	public boolean submitBuildRequest(BuildRequest request) {
@@ -84,11 +87,11 @@ public class BuildManager extends DefaultBWListener {
 		}
 		return pendingRequests.offer(request);
 	}
-	
+
 	public boolean removeBuildRequest(UnitType unitType) {
 		// Remove the last added unit of a type
 		Iterator<BuildRequest> it = pendingRequests.descendingIterator();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			BuildRequest request = it.next();
 			if (request.getUnit() == unitType) {
 				it.remove();
@@ -111,16 +114,22 @@ public class BuildManager extends DefaultBWListener {
 			message.append(req.getRequest().getUnit() + "\n");
 		}
 		game.drawTextScreen(0, 25, message.toString());
-		
+
 		// Check for requests that need to be restarted
 		for (StartedBuildRequest request : startedRequests) {
 			if (request.isTimedOut()) {
-				System.out.println("Request for " + request.getRequest().getUnit() + " timed out.");
+				System.out.println("Request for "
+						+ request.getRequest().getUnit() + " timed out.");
 				if (request.getRequest().getUnit().isBuilding()) {
-					TilePosition location = getBuildTile(request.getWorker(), 
-							request.getRequest().getUnit(), request.getRequest().getBuildLocation());
+					if (!request.getWorker().isCompleted()) {
+						return;
+					}
+					TilePosition location = getBuildTile(request.getWorker(),
+							request.getRequest().getUnit(), request
+									.getRequest().getBuildLocation());
 					if (location != null) {
-						request.getWorker().build(location, request.getRequest().getUnit());
+						request.getWorker().build(location,
+								request.getRequest().getUnit());
 					}
 				} else {
 					request.getWorker().train(request.getRequest().getUnit());
@@ -152,8 +161,9 @@ public class BuildManager extends DefaultBWListener {
 				// unit, balance it out more
 				if (unit.train(unitToBuild)) {
 					System.out.println("Started: " + unitToBuild);
-					
-					// Do not update startedMinerals and startedGas, it's deducted
+
+					// Do not update startedMinerals and startedGas, it's
+					// deducted
 					// upon enqueueing
 					startedRequests.add(new StartedBuildRequest(request, unit));
 					pendingRequests.remove(request);
@@ -174,22 +184,20 @@ public class BuildManager extends DefaultBWListener {
 
 		TilePosition buildTile = getBuildTile(worker, request.getUnit(),
 				requestLocation);
-		if (buildTile != null) {
-			System.out.println("Sending " + worker.getType() + " to build "
-					+ request.getUnit() + " at " + buildTile);
-			if (worker.build(buildTile, request.getUnit())) {
-				System.out.println("Success: " + request.getUnit());
-				
-				startedMinerals += request.getUnit().mineralPrice();
-				startedGas += request.getUnit().gasPrice();
-				
-				startedRequests.add(new StartedBuildRequest(request, worker));
-				pendingRequests.remove(request);
+		System.out.println("Sending " + worker.getType() + " to build "
+				+ request.getUnit() + " at " + buildTile);
+		if (buildTile == null || worker.build(buildTile, request.getUnit())) {
+			System.out.println("Success: " + request.getUnit());
 
-				return;
-			} else {
-				System.out.println("Fail: " + request.getUnit());
-			}
+			startedMinerals += request.getUnit().mineralPrice();
+			startedGas += request.getUnit().gasPrice();
+
+			startedRequests.add(new StartedBuildRequest(request, worker));
+			pendingRequests.remove(request);
+
+			return;
+		} else {
+			System.out.println("Fail: " + request.getUnit());
 		}
 		return;
 	}

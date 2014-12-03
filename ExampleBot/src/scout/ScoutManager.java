@@ -2,7 +2,6 @@ package scout;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import overmind.ControlCenter;
 import build.BuildRequest;
@@ -49,6 +48,10 @@ public class ScoutManager extends DefaultBWListener {
 			scoutReq = new BuildRequest(UnitType.Terran_Marine);
 			scoutReq = scoutReq.withUnitOutput(new ArrayList<Unit>());
 			motherBrain.submitRequest(scoutReq);
+			motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Supply_Depot));
+			for (int i = 0; i < 3; i++) {
+				motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Marine));
+			}
 			request = true;
 		}
 		
