@@ -31,7 +31,7 @@ public class ControlCenter extends DefaultBWListener {
 //	private ScoutManager scoutManager;
 	private BuildManager buildManager;
 	private TechManager techManager;
-	private AttackManager attackManager;
+//	private AttackManager attackManager;
 	
 	// Constants for genetic algorithm
 	public static final String knowledgeBasePath = "./knowledgebase.txt";
@@ -56,7 +56,7 @@ public class ControlCenter extends DefaultBWListener {
 	}
 	
 	public ControlCenter(Game game, ResourceManager resourceManager,
-		ScoutManager scoutManager, BuildManager buildManager, TechManager techManager, AttackManager attackManager) {
+		BuildManager buildManager, TechManager techManager) {
 		this.game = game;
 		this.self = game.self();
 		this.resourceManager = resourceManager;
@@ -66,7 +66,7 @@ public class ControlCenter extends DefaultBWListener {
 		
 		this.buildManager = buildManager;
 		this.techManager = techManager;
-		this.attackManager = attackManager;
+//		this.attackManager = attackManager;
 	}
 
 	@Override

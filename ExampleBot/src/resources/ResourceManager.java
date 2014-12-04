@@ -26,7 +26,7 @@ public class ResourceManager extends DefaultBWListener {
 	public void onUnitDiscover(Unit resource) {
 		if (resource.getType().isMineralField()) {
 			minerals.add(new ResourceInfo(resource));
-		} else if (resource.getType() == UnitType.Terran_Refinery) {
+		} else if (resource.getPlayer().equals(self) && resource.getType() == UnitType.Terran_Refinery) {
 			gasses.add(new ResourceInfo(resource));
 		}
 	}
