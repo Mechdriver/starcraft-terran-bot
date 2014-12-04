@@ -1,38 +1,34 @@
-package attack;
+package defense;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import overmind.ControlCenter;
 import scout.ScoutManager;
 import build.BuildRequest;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
-import bwapi.Position;
 import bwapi.Unit;
 import bwapi.UnitType;
 
-public class AttackManager extends DefaultBWListener {
-	private ControlCenter motherBrain = null;
-	private ScoutManager scoutMan;
+public class DefenseManager extends DefaultBWListener{
 	private Game myGame;
-	private Position enemyBaseLoc = null;
-	private BuildRequest squadReq;
+	private ControlCenter motherBrain;
 	private boolean depot = false;
-	private boolean attacking = false;
 	private int reqs = 0;
+	private BuildRequest squadReq;
 	private ArrayList<Unit> squadList = new ArrayList<Unit>();
 	
-	private static int maxSize = 5;
+	private Unit target = null;
 	
-	public AttackManager(Game game, ScoutManager scoutMan) {
+	private static int maxSize = 20;
+	
+	public DefenseManager(Game game) {
 		myGame = game;
-		this.scoutMan = scoutMan;
 	}
 	
 	@Override
 	public void onStart() {
-		System.out.println("Attack Manager initialized.");
+		System.out.println("Defense Manager initialized.");
 	}
 	
 	@Override
@@ -49,17 +45,18 @@ public class AttackManager extends DefaultBWListener {
 			reqs++;
 		}
 		
-		if (enemyBaseLoc == null) {
-			enemyBaseLoc = scoutMan.getEnemyBaseLoc();
-		}
-		
-		if (enemyBaseLoc != null && SquadSize() == maxSize && !attacking) {
-			for (Unit joe : squadList) {
-				joe.attack(enemyBaseLoc);
+		if (target == null || target.getHitPoints() == 0) {
+			if (!myGame.enemy().getUnits().isEmpty()) {
+				target = myGame.enemy().getUnits().get(0);
 			}
-			attacking = true;
 		}
 		
+		if (!myGame.enemy().getUnits().isEmpty()) {
+			
+			for (Unit joe : squadList) {
+				joe.attack(target);
+			}
+		}
 	}
 	
 	private int SquadSize() {
@@ -69,5 +66,4 @@ public class AttackManager extends DefaultBWListener {
 	public void setControlCenter(ControlCenter control) {
 		motherBrain = control;
 	}
-	
 }
