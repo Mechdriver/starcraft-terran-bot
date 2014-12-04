@@ -5,10 +5,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import defense.DefenseManager;
 import overmind.ControlCenter;
 import resources.ResourceManager;
 import scout.ScoutManager;
 import tech.TechManager;
+import attack.AttackManager;
 import build.BuildManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
@@ -55,23 +57,29 @@ public class TerranBotDriver {
 				ResourceManager resources = new ResourceManager(mirror, game, game.self());
 				
 				// No scouting for this demo
-//				ScoutManager scouting = new ScoutManager(game);
+				ScoutManager scouting = new ScoutManager(game);
 				
 				BuildManager building = new BuildManager(game, game.self());
 				TechManager tech = new TechManager(game);
-//				ControlCenter control = new ControlCenter(game, resources, scouting, building, tech);
-				ControlCenter control = new ControlCenter(game, resources, building, tech);
+
+				AttackManager attack = new AttackManager(game, scouting);
+				//DefenseManager defense = new DefenseManager(game);
+				ControlCenter control = new ControlCenter(game, resources, scouting, building, tech, attack);
 				
 				resources.setControlCenter(control);
 //				scouting.setControlCenter(control);
 				building.setControlCenter(control);
 				tech.setControlCenter(control);
+				attack.setControlCenter(control);
+				//defense.setControlCenter(control);
 				
 				listenerModules.add(control);
 				listenerModules.add(resources);
 //				listenerModules.add(scouting);
 				listenerModules.add(building);
 				listenerModules.add(tech);
+				listenerModules.add(attack);
+				//listenerModules.add(defense);
 				
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onStart();

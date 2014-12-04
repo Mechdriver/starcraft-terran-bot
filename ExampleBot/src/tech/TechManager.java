@@ -109,7 +109,5 @@ public class TechManager extends DefaultBWListener {
 				upgradeBuildings.clear();
 			}
 		}
-	}
-	
-	
+	}	
 }

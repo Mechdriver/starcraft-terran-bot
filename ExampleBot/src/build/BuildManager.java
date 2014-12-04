@@ -1,6 +1,7 @@
 package build;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -23,6 +24,7 @@ public class BuildManager extends DefaultBWListener {
 	private Deque<BuildRequest> pendingRequests = new LinkedList<BuildRequest>();
 	private List<StartedBuildRequest> startedRequests = new ArrayList<StartedBuildRequest>();
 	private List<StartedBuildRequest> finishedRequests = new ArrayList<StartedBuildRequest>();
+	private List<BuildQueue> buildings = new ArrayList<BuildQueue>();
 
 	private int startedMinerals = 0;
 	private int startedGas = 0;
@@ -38,13 +40,13 @@ public class BuildManager extends DefaultBWListener {
 
 	@Override
 	public void onUnitCreate(Unit unit) {
-		System.out.println("New unit " + unit.getType());
 
 		// Find the request the unit fulfills.
 		StartedBuildRequest started = null;
 		for (StartedBuildRequest request : startedRequests) {
 			if (request.getRequest().getUnit().equals(unit.getType())) {
 				started = request;
+				break;
 			}
 		}
 
@@ -54,11 +56,11 @@ public class BuildManager extends DefaultBWListener {
 
 			finishedRequests.add(started);
 
-			if (unit.getType().isBuilding()) {
-				startedMinerals -= started.getRequest().getUnit()
-						.mineralPrice();
-				startedGas -= started.getRequest().getUnit().gasPrice();
-			}
+			startedMinerals -= started.getRequest().getUnit().mineralPrice();
+			startedGas -= started.getRequest().getUnit().gasPrice();
+		} else if (self.getUnits().contains(unit)) {
+			startedMinerals -= unit.getType().mineralPrice();
+			startedGas -= unit.getType().gasPrice();
 		}
 	}
 
@@ -77,6 +79,18 @@ public class BuildManager extends DefaultBWListener {
 				completed.getRequest().getUnitOutput().add(unit);
 			}
 			finishedRequests.remove(completed);
+		}
+		if (unit.getType() == UnitType.Terran_Barracks) {
+			buildings.add(new BuildQueue(unit, UnitType.Terran_Marine));
+		}
+		if (unit.getType() == UnitType.Terran_Command_Center) {
+			buildings.add(new BuildQueue(unit, UnitType.Terran_SCV));
+		}
+		
+		for (BuildQueue building : buildings) {
+			if (building.remove(unit)) {
+				break;
+			}
 		}
 	}
 
@@ -115,6 +129,26 @@ public class BuildManager extends DefaultBWListener {
 		}
 		game.drawTextScreen(0, 25, message.toString());
 
+		game.drawTextScreen(200, 25, "Started Minerals: " + startedMinerals
+				+ "\nStarted Gas: " + startedGas);
+		
+		message = new StringBuilder("Building Queues:\n");
+		for (BuildQueue queue : buildings) {
+			
+			// YO KEEP THIS AROUND
+			queue.check();
+			// YO KEEP THAT AROUND
+			
+			message.append(queue.getBuilding().getType() + ": ");
+			for (UnitType u : queue.getQueue()) {
+				message.append(u + ", ");
+			}
+			message.append("\n");
+		}
+		game.drawTextScreen(0, 250, message.toString());
+		
+
+
 		// Check for requests that need to be restarted
 		for (StartedBuildRequest request : startedRequests) {
 			if (request.isTimedOut()) {
@@ -131,18 +165,14 @@ public class BuildManager extends DefaultBWListener {
 						request.getWorker().build(location,
 								request.getRequest().getUnit());
 					}
-				} else {
-					request.getWorker().train(request.getRequest().getUnit());
 				}
 			}
 		}
 
-		// TODO: take into account priority
 		BuildRequest request = pendingRequests.peek();
 		if (request == null) {
 			return;
 		}
-
 		for (StartedBuildRequest started : startedRequests) {
 			if (started.getRequest().equals(request)) {
 				return;
@@ -153,26 +183,14 @@ public class BuildManager extends DefaultBWListener {
 				|| unitToBuild.mineralPrice() > (self.minerals() - startedMinerals)) {
 			return;
 		}
-		System.out.println("Trying to build " + request.getUnit());
 		if (!unitToBuild.isBuilding()) {
-			// Train a unit
-			for (Unit unit : self.getUnits()) {
-				// TODO: Don't just build in the first building that'll take the
-				// unit, balance it out more
-				if (unit.train(unitToBuild)) {
-					System.out.println("Started: " + unitToBuild);
-
-					// Do not update startedMinerals and startedGas, it's
-					// deducted
-					// upon enqueueing
-					startedRequests.add(new StartedBuildRequest(request, unit));
-					pendingRequests.remove(request);
-					break;
-				}
-			}
-			return;
+			trainUnit(request);
+		} else {
+			buildBuilding(request);
 		}
-		// Build a building
+	}
+
+	private void buildBuilding(BuildRequest request) {
 		Unit worker = control.requestUnit(UnitType.Terran_SCV);
 		if (worker == null) {
 			return;
@@ -194,11 +212,52 @@ public class BuildManager extends DefaultBWListener {
 
 			startedRequests.add(new StartedBuildRequest(request, worker));
 			pendingRequests.remove(request);
-
-			return;
 		} else {
 			System.out.println("Fail: " + request.getUnit());
 		}
+	}
+
+	private void trainUnit(BuildRequest request) {
+		UnitType unitToBuild = request.getUnit();
+		
+		List<BuildQueue> queues = new ArrayList<BuildQueue>();
+		for (BuildQueue building : buildings) {
+//			System.out.println("Can " + building.getBuilding().getType()
+//					+ " train " + unitToBuild + "? "
+//					+ building.canBuild(unitToBuild));
+			if (building.canBuild(unitToBuild)) {
+				queues.add(building);
+			}
+		}
+		if (!queues.isEmpty()) {
+			Collections.sort(queues);
+			StringBuilder queueBuildings = new StringBuilder();
+			for (BuildQueue queue : queues) {
+				queueBuildings.append(queue.getBuilding().getType() + ", ");
+			}
+			BuildQueue queue = queues.get(0);
+
+			queue.add(unitToBuild);
+
+			startedMinerals += request.getUnit().mineralPrice();
+			startedGas += request.getUnit().gasPrice();
+
+			startedRequests.add(new StartedBuildRequest(request, queue
+					.getBuilding()));
+			pendingRequests.remove(request);
+			return;
+		}
+
+		// Couldn't find a building that we registered, fall back
+		// to search through all units.
+		System.out.println("FAILED to find building for " + unitToBuild);
+		// for (Unit unit : self.getUnits()) {
+		// if (unit.train(unitToBuild)) {
+		// startedRequests.add(new StartedBuildRequest(request, unit));
+		// pendingRequests.remove(request);
+		// break;
+		// }
+		// }
 		return;
 	}
 

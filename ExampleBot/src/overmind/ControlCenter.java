@@ -10,7 +10,9 @@ import java.util.Random;
 import java.util.Scanner;
 
 import resources.ResourceManager;
+import scout.ScoutManager;
 import tech.TechManager;
+import attack.AttackManager;
 import build.BuildManager;
 import build.BuildRequest;
 import bwapi.DefaultBWListener;
@@ -29,6 +31,7 @@ public class ControlCenter extends DefaultBWListener {
 //	private ScoutManager scoutManager;
 	private BuildManager buildManager;
 	private TechManager techManager;
+	private AttackManager attackManager;
 	
 	// Constants for genetic algorithm
 	public static final String knowledgeBasePath = "./knowledgebase.txt";
@@ -53,7 +56,7 @@ public class ControlCenter extends DefaultBWListener {
 	}
 	
 	public ControlCenter(Game game, ResourceManager resourceManager,
-			BuildManager buildManager, TechManager techManager) {
+		ScoutManager scoutManager, BuildManager buildManager, TechManager techManager, AttackManager attackManager) {
 		this.game = game;
 		this.self = game.self();
 		this.resourceManager = resourceManager;
@@ -63,6 +66,7 @@ public class ControlCenter extends DefaultBWListener {
 		
 		this.buildManager = buildManager;
 		this.techManager = techManager;
+		this.attackManager = attackManager;
 	}
 
 	@Override
