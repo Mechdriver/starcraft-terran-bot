@@ -109,10 +109,6 @@ public class TechManager extends DefaultBWListener {
 				upgradeBuildings.clear();
 			}
 		}
-		
-		for (int i = 0; i < 3; i ++) {
-			control.submitRequest(new BuildRequest(UnitType.Terran_Marine));
-		}
 	}
 	
 	

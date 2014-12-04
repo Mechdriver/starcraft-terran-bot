@@ -251,6 +251,7 @@ public class BuildManager extends DefaultBWListener {
 		if (ret == null)
 			game.printf("Unable to find suitable build position for "
 					+ buildingType.toString());
+
 		return ret;
 	}
 }

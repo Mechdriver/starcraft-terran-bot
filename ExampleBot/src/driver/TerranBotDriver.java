@@ -39,7 +39,7 @@ public class TerranBotDriver {
 			public void onStart() {
 				game = mirror.getGame();
 				listenerModules = new ArrayList<DefaultBWListener>();
-				game.setLocalSpeed(10);
+				game.setLocalSpeed(0);
 				
 				createdRefineriesHack = new HashSet<Integer>();
 				completedRefineriesHack = new HashSet<Integer>();
@@ -53,19 +53,23 @@ public class TerranBotDriver {
 				System.out.println("Map data ready");
 				
 				ResourceManager resources = new ResourceManager(mirror, game, game.self());
-				ScoutManager scouting = new ScoutManager(game);
+				
+				// No scouting for this demo
+//				ScoutManager scouting = new ScoutManager(game);
+				
 				BuildManager building = new BuildManager(game, game.self());
 				TechManager tech = new TechManager(game);
-				ControlCenter control = new ControlCenter(game, resources, scouting, building, tech);
+//				ControlCenter control = new ControlCenter(game, resources, scouting, building, tech);
+				ControlCenter control = new ControlCenter(game, resources, building, tech);
 				
 				resources.setControlCenter(control);
-				scouting.setControlCenter(control);
+//				scouting.setControlCenter(control);
 				building.setControlCenter(control);
 				tech.setControlCenter(control);
 				
 				listenerModules.add(control);
 				listenerModules.add(resources);
-				listenerModules.add(scouting);
+//				listenerModules.add(scouting);
 				listenerModules.add(building);
 				listenerModules.add(tech);
 				
