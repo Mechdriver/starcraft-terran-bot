@@ -8,6 +8,7 @@ import java.util.Set;
 import overmind.ControlCenter;
 import resources.ResourceManager;
 import scout.ScoutManager;
+import tech.TechManager;
 import build.BuildManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
@@ -38,7 +39,7 @@ public class TerranBotDriver {
 			public void onStart() {
 				game = mirror.getGame();
 				listenerModules = new ArrayList<DefaultBWListener>();
-				game.setLocalSpeed(5);
+				game.setLocalSpeed(10);
 				
 				createdRefineriesHack = new HashSet<Integer>();
 				completedRefineriesHack = new HashSet<Integer>();
@@ -54,16 +55,19 @@ public class TerranBotDriver {
 				ResourceManager resources = new ResourceManager(mirror, game, game.self());
 				ScoutManager scouting = new ScoutManager(game);
 				BuildManager building = new BuildManager(game, game.self());
-				ControlCenter control = new ControlCenter(game, resources, scouting, building);
+				TechManager tech = new TechManager(game);
+				ControlCenter control = new ControlCenter(game, resources, scouting, building, tech);
 				
 				resources.setControlCenter(control);
 				scouting.setControlCenter(control);
 				building.setControlCenter(control);
+				tech.setControlCenter(control);
 				
 				listenerModules.add(control);
 				listenerModules.add(resources);
 				listenerModules.add(scouting);
 				listenerModules.add(building);
+				listenerModules.add(tech);
 				
 				for (DefaultBWListener listener : listenerModules) {
 					listener.onStart();
@@ -152,6 +156,7 @@ public class TerranBotDriver {
 					listener.onUnitShow(unit);
 				}
 			}
+			
 			
 			// TODO: any other methods that modules want access to should be overridden here in the same way as onFrame()
 		});
