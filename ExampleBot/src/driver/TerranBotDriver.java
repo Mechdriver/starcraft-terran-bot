@@ -62,7 +62,6 @@ public class TerranBotDriver {
 				BuildManager building = new BuildManager(game, game.self());
 				TechManager tech = new TechManager(game);
 
-//				AttackManager attack = new AttackManager(game, scouting);
 				//DefenseManager defense = new DefenseManager(game);
 				ControlCenter control = new ControlCenter(game, resources, building, tech);
 				
