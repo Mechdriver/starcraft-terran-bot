@@ -2,6 +2,8 @@ package overmind;
 
 import resources.ResourceManager;
 import scout.ScoutManager;
+import tech.TechManager;
+import attack.AttackManager;
 import build.BuildManager;
 import build.BuildRequest;
 import bwapi.DefaultBWListener;
@@ -17,14 +19,18 @@ public class ControlCenter extends DefaultBWListener {
 	private ResourceManager resourceManager;
 	private ScoutManager scoutManager;
 	private BuildManager buildManager;
-
+	private TechManager techManager;
+	private AttackManager attackManager;
+	
 	public ControlCenter(Game game, ResourceManager resourceManager,
-			ScoutManager scoutManager, BuildManager buildManager) {
+			ScoutManager scoutManager, BuildManager buildManager, TechManager techManager, AttackManager attackManager) {
 		this.game = game;
 		this.self = game.self();
 		this.resourceManager = resourceManager;
 		this.scoutManager = scoutManager;
 		this.buildManager = buildManager;
+		this.techManager = techManager;
+		this.attackManager = attackManager;
 	}
 
 	@Override
@@ -34,6 +40,7 @@ public class ControlCenter extends DefaultBWListener {
 		// System.out.println("Control Center initialized.");
 		
 		// TODO: lol. Don't just hardcode everything
+		
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
@@ -58,7 +65,7 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
 				.withBuildLocation(self.getStartLocation()));
-		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+		/*buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
@@ -130,6 +137,12 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));*/
+		
+		// Perform the first marine upgrade
+		// Uncomment if you want upgrades to happen
+//		techManager.performResearch(UnitType.Terran_Marine);
+//		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
+//				.withBuildLocation(self.getStartLocation()));
 	}
 
 	@Override

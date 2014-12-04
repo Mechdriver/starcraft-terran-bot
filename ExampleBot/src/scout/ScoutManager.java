@@ -22,7 +22,8 @@ public class ScoutManager extends DefaultBWListener {
 	private boolean reported = false;
 	private Position enemyBaseLoc = null;
 	private HashMap<Integer, Unit> enemyUnitMemory = new HashMap<Integer, Unit>();
-	BuildRequest scoutReq;
+	private BuildRequest scoutReq;
+	private ArrayList<Unit> scoutList = new ArrayList<Unit>();
 	
 	public ScoutManager(Unit scout, Game game) {
 		myScout = scout;
@@ -41,26 +42,19 @@ public class ScoutManager extends DefaultBWListener {
 	}	
 	
 	@Override
-	public void onFrame() {
-		//System.out.println("A");
-		
-		if (motherBrain != null && !request) {
+	public void onFrame() {		
+		if (motherBrain != null && !request && enemyBaseLoc == null) {
 			scoutReq = new BuildRequest(UnitType.Terran_Marine);
-			scoutReq = scoutReq.withUnitOutput(new ArrayList<Unit>());
+			scoutReq = scoutReq.withUnitOutput(scoutList);
 			motherBrain.submitRequest(scoutReq);
-			motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Supply_Depot));
-			for (int i = 0; i < 3; i++) {
-				motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Marine));
-			}
 			request = true;
 		}
 		
-		if (scoutReq != null && scoutReq.getUnitOutput().size() > 0) {
-			ArrayList<Unit> list = (ArrayList<Unit>)scoutReq.getUnitOutput();
+		if (scoutReq != null && scoutList.size() > 0) {
 			
-			Unit unit = list.get(0);
+			Unit unit = scoutList.get(0);
 			
-			list.remove(0);
+			scoutList.remove(0);
 			
 			setScout(unit);
 		}
@@ -71,19 +65,19 @@ public class ScoutManager extends DefaultBWListener {
 			}
 			
 			else {
-				myScout.move(enemyBaseLoc);
+				myScout.attack(enemyBaseLoc);
 			}
 			
 			scouting = true;
 		}
 		
-		if (myScout != null && foundEnemy()) {
+		if (myScout != null && enemyBaseLoc == null && foundEnemy()) {
 				primeScout();			
 		}
 		
 		if (myScout != null && enemyBaseLoc != null && !reported) {
-			if (distToEnemy(25) || myScout.isAttacking() || myScout.isUnderAttack()) {
-				reportEnemy();
+			if (distToEnemy(25) || myScout.isUnderAttack()) {
+				//reportEnemy();
 				reported = true;
 			}
 		}
@@ -96,10 +90,6 @@ public class ScoutManager extends DefaultBWListener {
 			request = false;			
 		}
 	}
-	/* Control Center Calls
-	//public void requestUnits(UnitType unit, Integer amount);
-	//public void requestBuilding(UnitType building)
-	*/
 	
 	public void setControlCenter(ControlCenter control) {
 		motherBrain = control;
@@ -120,10 +110,15 @@ public class ScoutManager extends DefaultBWListener {
 	}
 	
 	public boolean foundEnemy() {
-		if (!myGame.enemy().getUnits().isEmpty())
-			return true;
-		else
-			return false;
+		if (!myGame.enemy().getUnits().isEmpty()) {
+			for (Unit enemy : myGame.enemy().getUnits()) {
+				if (enemy.getType().isBuilding()) {
+					return true;
+				}
+			}
+		}
+			
+		return false;
 	}
 	
 	public void primeScout() {
@@ -141,14 +136,12 @@ public class ScoutManager extends DefaultBWListener {
 			}
 		}
 		
-		enemyBaseLoc = bestPos;
-		
-		if (enemyBaseLoc != null) {
-			myScout.move(enemyBaseLoc);
+		if (enemyBaseLoc == null) {
+			enemyBaseLoc = bestPos;
 		}
 		
-		else {
-			myScout.stop();
+		if (enemyBaseLoc != null) {
+			myScout.attack(enemyBaseLoc);
 		}
 	}
 	
