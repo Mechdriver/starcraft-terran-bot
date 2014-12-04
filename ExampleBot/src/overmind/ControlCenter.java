@@ -45,6 +45,14 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
 				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_SCV)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
+				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
@@ -61,8 +69,7 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
 				.withBuildLocation(self.getStartLocation()));
-				
-				/*buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+		/*buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
@@ -78,9 +85,35 @@ public class ControlCenter extends DefaultBWListener {
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
 				.withBuildLocation(self.getStartLocation()));
-		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Barracks)
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
+				.withBuildLocation(self.getStartLocation()));
+		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Supply_Depot)
+				.withBuildLocation(self.getStartLocation()));
+		/*buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));
 		buildManager.submitBuildRequest(new BuildRequest(UnitType.Terran_Marine)
 				.withBuildLocation(self.getStartLocation()));

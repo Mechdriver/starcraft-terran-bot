@@ -26,10 +26,8 @@ public class ResourceManager extends DefaultBWListener {
 	public void onUnitDiscover(Unit resource) {
 		if (resource.getType().isMineralField()) {
 			minerals.add(new ResourceInfo(resource));
-			System.out.println("Number of minerals: " + minerals.size());
 		} else if (resource.getType() == UnitType.Terran_Refinery) {
 			gasses.add(new ResourceInfo(resource));
-			System.out.println("Number of gasses: " + gasses.size());
 		}
 	}
 
@@ -49,6 +47,14 @@ public class ResourceManager extends DefaultBWListener {
 	@Override
 	public void onFrame() {
 		for (ResourceInfo resource : gasses) {
+			while (!resource.isSaturated()) {
+				Unit worker = takeMineralsWorker();
+				if (worker == null) {
+					break;
+				}
+				resource.workers.add(worker);
+				worker.gather(resource.resource);
+			}
 			for (Unit worker : resource.workers) {
 				if (worker.isIdle()) {
 					System.out.println("Sending " + worker.getType() + " to gather " + resource.resource.getType());
@@ -141,23 +147,42 @@ public class ResourceManager extends DefaultBWListener {
 			return workers.size() > 2;
 		}
 	}
+	
+	private Unit takeMineralsWorker() {
+		Unit toGive = null;
+		for (ResourceInfo resource : minerals) {
+			for (Unit worker : resource.workers) {
+				if (!worker.isCarryingMinerals() && !worker.isConstructing()) {
+					toGive = worker;
+					break;
+				}
+			}
+			if (toGive != null) {
+				resource.workers.remove(toGive);
+				return toGive;
+			}
+		}
+		return null;
+	}
 
 	public Unit takeUnit(UnitType unitType) {
 		if (unitType != UnitType.Terran_SCV) {
 			return null;
 		}
-		for (ResourceInfo resource : minerals) {
-			for (Unit worker : resource.workers) {
-				if (!worker.isCarryingMinerals() && !worker.isConstructing()) {
-					return worker;
-				}
-			}
+		Unit toGive = takeMineralsWorker();
+		if (toGive != null) {
+			return toGive;
 		}
 		for (ResourceInfo resource : gasses) {
 			for (Unit worker : resource.workers) {
 				if (!worker.isCarryingGas() && !worker.isConstructing()) {
-					return worker;
+					toGive = worker;
+					break;
 				}
+			}
+			if (toGive != null) {
+				resource.workers.remove(toGive);
+				return toGive;
 			}
 		}
 		return null;
