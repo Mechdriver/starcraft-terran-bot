@@ -15,7 +15,6 @@ public class DefenseManager extends DefaultBWListener{
 	private ControlCenter motherBrain;
 	private boolean depot = false;
 	private int reqs = 0;
-	private int supRatio = 0;
 	private BuildRequest squadReq;
 	private ArrayList<Unit> squadList = new ArrayList<Unit>();
 	
@@ -33,14 +32,6 @@ public class DefenseManager extends DefaultBWListener{
 	}
 	
 	@Override
-	public void onUnitDestroy(Unit unit) {
-		if (unit.getType() == UnitType.Terran_Marine) {
-			reqs--;
-			squadList.remove(unit);
-		}
-	}
-	
-	@Override
 	public void onFrame() {
 		if (motherBrain != null && !depot) {
 			motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Supply_Depot));
@@ -52,23 +43,7 @@ public class DefenseManager extends DefaultBWListener{
 			squadReq = squadReq.withUnitOutput(squadList);
 			motherBrain.submitRequest(squadReq);
 			reqs++;
-			supRatio++;
-			
-			if (supRatio == 5) {
-				motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Supply_Depot));
-				supRatio = 0;
-			}
 		}
-		
-		/*if (squadSize() > 0) {
-			ArrayList<Unit> tempList = new ArrayList<Unit>(squadList);
-			
-			for (Unit joe : tempList) {
-				if (joe.getHitPoints() == 0) {
-					squadList.remove(joe);
-				}
-			}
-		}*/
 		
 		if (target == null || target.getHitPoints() == 0) {
 			if (!myGame.enemy().getUnits().isEmpty()) {
@@ -84,7 +59,7 @@ public class DefenseManager extends DefaultBWListener{
 		}
 	}
 	
-	private int squadSize() {
+	private int SquadSize() {
 		return squadList.size();
 	}
 	
