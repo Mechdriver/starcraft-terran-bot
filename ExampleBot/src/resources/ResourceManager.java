@@ -46,7 +46,12 @@ public class ResourceManager extends DefaultBWListener {
 
 	@Override
 	public void onFrame() {
+		List<ResourceInfo> toRemove = new ArrayList<ResourceInfo>();
 		for (ResourceInfo resource : gasses) {
+			if (resource.resource.getType() == UnitType.Unknown) {
+				toRemove.add(resource);
+				continue;
+			}
 			while (!resource.isSaturated()) {
 				Unit worker = takeMineralsWorker();
 				if (worker == null) {
@@ -62,7 +67,19 @@ public class ResourceManager extends DefaultBWListener {
 				}
 			}
 		}
+		for (ResourceInfo resource : toRemove) {
+			List<Unit> freeBuilders = resource.workers;
+			gasses.remove(resource);
+			for (Unit unit : freeBuilders) {
+				giveWorker(unit);
+			}
+		}
+		toRemove.clear();
 		for (ResourceInfo resource : minerals) {
+			if (resource.resource.getType() == UnitType.Unknown) {
+				toRemove.add(resource);
+				continue;
+			}
 			for (Unit worker : resource.workers) {
 				if (worker.isIdle()) {
 					System.out.println("Sending " + worker.getType() + " to gather " + resource.resource.getType());
@@ -70,6 +87,14 @@ public class ResourceManager extends DefaultBWListener {
 				}
 			}
 		}
+		for (ResourceInfo resource : toRemove) {
+			List<Unit> freeBuilders = resource.workers;
+			minerals.remove(resource);
+			for (Unit unit : freeBuilders) {
+				giveWorker(unit);
+			}
+		}
+
 		if (!availableWorkers.isEmpty()) {
 			for (Unit worker : availableWorkers) {
 				giveWorker(worker);
@@ -144,7 +169,7 @@ public class ResourceManager extends DefaultBWListener {
 
 		private boolean isSaturated() {
 			// TODO: SUPER arbitrary. Do better in the future
-			return workers.size() > 2;
+			return workers.size() > 4;
 		}
 	}
 	
