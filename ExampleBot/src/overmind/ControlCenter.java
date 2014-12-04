@@ -5,14 +5,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
 import resources.ResourceManager;
-import scout.ScoutManager;
 import tech.TechManager;
-import attack.AttackManager;
 import build.BuildManager;
 import build.BuildRequest;
 import bwapi.DefaultBWListener;
@@ -31,13 +31,13 @@ public class ControlCenter extends DefaultBWListener {
 //	private ScoutManager scoutManager;
 	private BuildManager buildManager;
 	private TechManager techManager;
-	private AttackManager attackManager;
+//	private AttackManager attackManager;
 	
 	// Constants for genetic algorithm
 	public static final String knowledgeBasePath = "./knowledgebase.txt";
 	public static final int NUM_BUILD_ORDERS = 12;
 	public static final int NUM_ORDERS_PRESERVED = 3;
-	public static final int INITIAL_BUILD_LENGTH = 10;
+	public static final int INITIAL_BUILD_LENGTH = 20;
 	public static final String[] UNIT_TYPES = {"SCV", "Barracks", "Marine", "SupplyDepot", "Refinery"};
 	
 	// Other global vars for genetic algorithm
@@ -49,6 +49,7 @@ public class ControlCenter extends DefaultBWListener {
 		public ArrayList<String> order;
 		public int time;
 		public int resourceScore;
+		public int numBuildFailures;
 		
 		public BuildOrder() {
 			
@@ -56,7 +57,7 @@ public class ControlCenter extends DefaultBWListener {
 	}
 	
 	public ControlCenter(Game game, ResourceManager resourceManager,
-		ScoutManager scoutManager, BuildManager buildManager, TechManager techManager, AttackManager attackManager) {
+		BuildManager buildManager, TechManager techManager) {
 		this.game = game;
 		this.self = game.self();
 		this.resourceManager = resourceManager;
@@ -66,7 +67,7 @@ public class ControlCenter extends DefaultBWListener {
 		
 		this.buildManager = buildManager;
 		this.techManager = techManager;
-		this.attackManager = attackManager;
+//		this.attackManager = attackManager;
 	}
 
 	@Override
@@ -94,12 +95,14 @@ public class ControlCenter extends DefaultBWListener {
 		//int gameTime = game.getFrameCount()/game.getFPS();
 		int gameTime = game.getFrameCount();
 		int resourceScore = self.gatheredMinerals() + self.gatheredGas();
+		int numFailures = buildManager.getBuildFailures();
 		System.out.println("Time Elapsed(Seconds): " + gameTime);
 		System.out.println("Resource Score: " + resourceScore);
 		
 		// Update the currentBuild order with the stats of the run through
 		currentBuildOrder.time = gameTime;
 		currentBuildOrder.resourceScore = resourceScore;
+		currentBuildOrder.numBuildFailures = numFailures;
 		
 		updateBuildOrderInKB(currentBuildOrder);
 		
@@ -198,6 +201,12 @@ public class ControlCenter extends DefaultBWListener {
 			}
 			else {
 				buildOrderIteration = index;
+				try {
+					Files.copy(Paths.get(knowledgeBasePath), Paths.get("./savedKB_" + index + ".txt"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				forceNaturalSelection(in);
 			}
 			
@@ -221,10 +230,10 @@ public class ControlCenter extends DefaultBWListener {
 		
 		for (int i = 0 ; i < NUM_ORDERS_PRESERVED; i++) {
 			// Find the highest scoring build order, preserve it, remove it from the initial list
-			int highest = -1;
+			int highest = -100000;
 			BuildOrder temp = null;
 			for (BuildOrder order : allOrders) {
-				int score = order.time + order.resourceScore;
+				int score = order.time + order.resourceScore - order.numBuildFailures;
 				if (score > highest) {
 					highest = score;
 					temp = order;
@@ -304,6 +313,7 @@ public class ControlCenter extends DefaultBWListener {
 			buildOrder.id = buildOrderIteration++;
 			buildOrder.time = -1;
 			buildOrder.resourceScore = -1;
+			buildOrder.numBuildFailures = -1;
 			buildOrder.order = new ArrayList<String>();
 			
 			for (int j = 0; j < INITIAL_BUILD_LENGTH; j++){

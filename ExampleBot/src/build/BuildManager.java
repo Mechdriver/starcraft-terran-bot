@@ -25,6 +25,8 @@ public class BuildManager extends DefaultBWListener {
 	private List<StartedBuildRequest> startedRequests = new ArrayList<StartedBuildRequest>();
 	private List<StartedBuildRequest> finishedRequests = new ArrayList<StartedBuildRequest>();
 	private List<BuildQueue> buildings = new ArrayList<BuildQueue>();
+	
+	private int buildFailures = 0;
 
 	private int startedMinerals = 0;
 	private int startedGas = 0;
@@ -36,6 +38,10 @@ public class BuildManager extends DefaultBWListener {
 
 	public void setControlCenter(ControlCenter control) {
 		this.control = control;
+	}
+	
+	public int getBuildFailures() {
+		return buildFailures;
 	}
 
 	@Override
@@ -136,7 +142,7 @@ public class BuildManager extends DefaultBWListener {
 		for (BuildQueue queue : buildings) {
 			
 			// YO KEEP THIS AROUND
-			queue.check();
+			buildFailures += (queue.check() ? 0 : 1);
 			// YO KEEP THAT AROUND
 			
 			message.append(queue.getBuilding().getType() + ": ");
@@ -183,10 +189,10 @@ public class BuildManager extends DefaultBWListener {
 				|| unitToBuild.mineralPrice() > (self.minerals() - startedMinerals)) {
 			return;
 		}
-		if (!unitToBuild.isBuilding()) {
-			trainUnit(request);
-		} else {
+		if (unitToBuild.isBuilding()) {
 			buildBuilding(request);
+		} else {
+			trainUnit(request);
 		}
 	}
 
@@ -214,6 +220,7 @@ public class BuildManager extends DefaultBWListener {
 			pendingRequests.remove(request);
 		} else {
 			System.out.println("Fail: " + request.getUnit());
+			buildFailures += 1;
 		}
 	}
 
@@ -251,6 +258,7 @@ public class BuildManager extends DefaultBWListener {
 		// Couldn't find a building that we registered, fall back
 		// to search through all units.
 		System.out.println("FAILED to find building for " + unitToBuild);
+		buildFailures += 1;
 		// for (Unit unit : self.getUnits()) {
 		// if (unit.train(unitToBuild)) {
 		// startedRequests.add(new StartedBuildRequest(request, unit));
@@ -272,6 +280,11 @@ public class BuildManager extends DefaultBWListener {
 
 		// Refinery, Assimilator, Extractor
 		if (buildingType.isRefinery()) {
+			for (Unit u : self.getUnits()) {
+				if (u.getType().isRefinery()) {
+					return null;
+				}
+			}
 			for (Unit n : game.neutral().getUnits()) {
 				if ((n.getType() == UnitType.Resource_Vespene_Geyser)
 						&& (Math.abs(n.getTilePosition().getX()
@@ -307,9 +320,11 @@ public class BuildManager extends DefaultBWListener {
 			maxDist += 2;
 		}
 
-		if (ret == null)
+		if (ret == null) {
 			game.printf("Unable to find suitable build position for "
 					+ buildingType.toString());
+			buildFailures += 1;
+		}
 
 		return ret;
 	}

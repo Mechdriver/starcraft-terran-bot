@@ -57,20 +57,20 @@ public class TerranBotDriver {
 				ResourceManager resources = new ResourceManager(mirror, game, game.self());
 				
 				// No scouting for this demo
-				ScoutManager scouting = new ScoutManager(game);
+//				ScoutManager scouting = new ScoutManager(game);
 				
 				BuildManager building = new BuildManager(game, game.self());
 				TechManager tech = new TechManager(game);
 
-				AttackManager attack = new AttackManager(game, scouting);
+//				AttackManager attack = new AttackManager(game, scouting);
 				//DefenseManager defense = new DefenseManager(game);
-				ControlCenter control = new ControlCenter(game, resources, scouting, building, tech, attack);
+				ControlCenter control = new ControlCenter(game, resources, building, tech);
 				
 				resources.setControlCenter(control);
 //				scouting.setControlCenter(control);
 				building.setControlCenter(control);
 				tech.setControlCenter(control);
-				attack.setControlCenter(control);
+//				attack.setControlCenter(control);
 				//defense.setControlCenter(control);
 				
 				listenerModules.add(control);
@@ -78,7 +78,7 @@ public class TerranBotDriver {
 //				listenerModules.add(scouting);
 				listenerModules.add(building);
 				listenerModules.add(tech);
-				listenerModules.add(attack);
+//				listenerModules.add(attack);
 				//listenerModules.add(defense);
 				
 				for (DefaultBWListener listener : listenerModules) {

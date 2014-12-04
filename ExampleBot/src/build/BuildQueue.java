@@ -49,12 +49,13 @@ public class BuildQueue implements Comparable<BuildQueue> {
 		return queue;
 	}
 	
-	public void check() {
+	public boolean check() {
 		// If there's something in the queue and we aren't building
 		if (!queue.isEmpty() && !building.isTraining()) {
 			System.out.println("Starting construction of " + queue.get(0));
-			building.train(queue.get(0));
+			return building.train(queue.get(0));
 		}
+		return true;
 	}
 	
 	public Unit getBuilding() {
