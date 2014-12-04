@@ -65,7 +65,7 @@ public class ScoutManager extends DefaultBWListener {
 			}
 			
 			else {
-				myScout.move(enemyBaseLoc);
+				myScout.attack(enemyBaseLoc);
 			}
 			
 			scouting = true;
@@ -141,8 +141,8 @@ public class ScoutManager extends DefaultBWListener {
 		}
 		
 		if (enemyBaseLoc != null) {
-			//myScout.move(enemyBaseLoc);
-			myScout.stop();
+			myScout.attack(enemyBaseLoc);
+			//myScout.stop();
 		}
 	}
 	

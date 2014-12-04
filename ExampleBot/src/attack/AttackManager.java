@@ -79,7 +79,7 @@ public class AttackManager extends DefaultBWListener {
 		
 		//TODO: Get rid of Marines when they die.
 		
-		if (enemyBaseLoc != null && squadSize() >= maxSize && myGame.enemy().getUnits().isEmpty()) {
+		if (enemyBaseLoc != null && squadSize() >= maxSize && target == null) {
 			for (Unit joe : squadList) {
 				joe.attack(enemyBaseLoc);
 			}			
@@ -89,6 +89,7 @@ public class AttackManager extends DefaultBWListener {
 		if (!myGame.enemy().getUnits().isEmpty() && attacking) {
 			target = myGame.enemy().getUnits().get(0);
 			for (Unit joe : squadList) {
+				joe.stop();
 				joe.attack(target);
 			}
 		}
