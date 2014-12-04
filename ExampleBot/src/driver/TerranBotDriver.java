@@ -38,7 +38,7 @@ public class TerranBotDriver {
 			public void onStart() {
 				game = mirror.getGame();
 				listenerModules = new ArrayList<DefaultBWListener>();
-				game.setLocalSpeed(5);
+				game.setLocalSpeed(0);
 				
 				createdRefineriesHack = new HashSet<Integer>();
 				completedRefineriesHack = new HashSet<Integer>();
