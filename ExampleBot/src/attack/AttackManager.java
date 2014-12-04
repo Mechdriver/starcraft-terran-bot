@@ -39,9 +39,10 @@ public class AttackManager extends DefaultBWListener {
 	
 	@Override
 	public void onUnitDestroy(Unit unit) {
-		if (unit.getType() == UnitType.Terran_Marine) {
-			reqs--;
-			squadList.remove(unit);
+		if (unit.getType() == UnitType.Terran_Marine) {			
+			if (squadList.remove(unit)) {
+				reqs--;
+			}
 		}
 		
 		if (unit.equals(target)) {
@@ -79,7 +80,7 @@ public class AttackManager extends DefaultBWListener {
 		
 		//TODO: Get rid of Marines when they die.
 		
-		if (enemyBaseLoc != null && squadSize() >= maxSize && target == null) {
+		if (enemyBaseLoc != null && squadSize() >= maxSize) {
 			for (Unit joe : squadList) {
 				joe.attack(enemyBaseLoc);
 			}			
@@ -88,16 +89,24 @@ public class AttackManager extends DefaultBWListener {
 		
 		if (!myGame.enemy().getUnits().isEmpty() && attacking) {
 			target = myGame.enemy().getUnits().get(0);
+			int min = 1000000000;
+			//ArrayList<Unit> tempList = new ArrayList<Unit>(squadList);
+			
 			for (Unit joe : squadList) {
-				joe.stop();
-				joe.attack(target);
+				Unit unqTarget = null;
+				for (Unit en : myGame.enemy().getUnits()) {
+					int dist = joe.getDistance(en);
+					
+					if (dist < min) {
+						min = dist;
+						unqTarget = en;
+					}
+				}
+				if (unqTarget != null){
+					joe.attack(unqTarget);
+				}
 			}
-		}
-		
-		else {
-			target = null;
-		}
-		
+		}	
 	}
 	
 	private int squadSize() {
