@@ -42,6 +42,7 @@ public class ControlCenter extends DefaultBWListener {
 	// Other global vars for genetic algorithm
 	BuildOrder currentBuildOrder;
 	public int buildOrderIteration = 0;
+	public int ITERATION_COUNT = NUM_BUILD_ORDERS;
 
 	public class BuildOrder {
 		public int id;
@@ -49,6 +50,7 @@ public class ControlCenter extends DefaultBWListener {
 		public int time;
 		public int resourceScore;
 		public int numBuildFailures;
+		public int killScore;
 
 		public BuildOrder() {
 
@@ -96,6 +98,7 @@ public class ControlCenter extends DefaultBWListener {
 		int gameTime = game.getFrameCount();
 		int resourceScore = self.gatheredMinerals() + self.gatheredGas();
 		int numFailures = buildManager.getBuildFailures();
+		int killScore = self.getKillScore() * 10000;
 		System.out.println("Time Elapsed(Seconds): " + gameTime);
 		System.out.println("Resource Score: " + resourceScore);
 
@@ -103,6 +106,7 @@ public class ControlCenter extends DefaultBWListener {
 		currentBuildOrder.time = gameTime;
 		currentBuildOrder.resourceScore = resourceScore;
 		currentBuildOrder.numBuildFailures = numFailures;
+		currentBuildOrder.killScore = killScore;
 		
 		updateBuildOrderInKB(currentBuildOrder);
 
@@ -197,9 +201,10 @@ public class ControlCenter extends DefaultBWListener {
 			System.out.println("Loading index: " + index);
 
 			// Find the correct build order to load
-			if (index < NUM_BUILD_ORDERS) {
+			if (index < ITERATION_COUNT) {
 				loadBuildOrderFromFile(in, index);
 			} else {
+				ITERATION_COUNT += ITERATION_COUNT;
 				buildOrderIteration = index;
 				try {
 					Files.copy(Paths.get(knowledgeBasePath), Paths.get("./savedKB_" + index + ".txt"));
@@ -286,6 +291,7 @@ public class ControlCenter extends DefaultBWListener {
 				order.id = buildOrderIteration++;
 				order.time = -1;
 				order.resourceScore = -1;
+				order.killScore = 0;
 				writer.write(gson.toJson(order));
 				writer.newLine();
 			}
@@ -302,6 +308,7 @@ public class ControlCenter extends DefaultBWListener {
 					newOrder.id = buildOrderIteration++;
 					newOrder.time = -1;
 					newOrder.resourceScore = -1;
+					newOrder.killScore = 0;
 					newOrder.order = crossBreed(first.order, second.order);
 					writer.write(gson.toJson(newOrder));
 					writer.newLine();
