@@ -77,6 +77,7 @@ public class TerranBotDriver {
 //				listenerModules.add(scouting);
 				listenerModules.add(building);
 				listenerModules.add(tech);
+				listenerModules.add(new DefenseManager());
 //				listenerModules.add(attack);
 				//listenerModules.add(defense);
 				
