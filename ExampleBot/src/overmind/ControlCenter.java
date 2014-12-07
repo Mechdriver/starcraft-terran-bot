@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -23,6 +21,7 @@ import bwapi.Unit;
 import bwapi.UnitType;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class ControlCenter extends DefaultBWListener {
 	private Game game;
@@ -44,18 +43,31 @@ public class ControlCenter extends DefaultBWListener {
 	public int buildOrderIteration = 0;
 	public int ITERATION_COUNT = NUM_BUILD_ORDERS;
 
+	
 	public class BuildOrder {
-		public int id;
 		public List<String> order;
-		public int time;
-		public int resourceScore;
-		public int numBuildFailures;
-		public int killScore;
-
+		public int score;
+		
 		public BuildOrder() {
-
+			
+		}
+		
+		public void setScore(int time, int resourceScore, int numBuildFailures, int killScore) {
+			this.score = time + resourceScore + killScore;
+			this.score -= numBuildFailures;
 		}
 	}
+	
+	public class KnowledgeBaseObject {
+		public List<BuildOrder> orders;
+		public int index;
+		public boolean readyToMutate;
+		
+		public KnowledgeBaseObject () {
+			
+		}
+	}
+	
 
 	public ControlCenter(Game game, ResourceManager resourceManager,
 		BuildManager buildManager, TechManager techManager) {
@@ -92,7 +104,6 @@ public class ControlCenter extends DefaultBWListener {
 		// Also false on early quit
 		System.out.println("Game ended with winner: " + arg0);
 
-		System.out.println("Ran Build order #: " + currentBuildOrder.id);
 		// Wtf... don't have access to game.elapsedTime;
 		// int gameTime = game.getFrameCount()/game.getFPS();
 		int gameTime = game.getFrameCount();
@@ -103,10 +114,7 @@ public class ControlCenter extends DefaultBWListener {
 		System.out.println("Resource Score: " + resourceScore);
 
 		// Update the currentBuild order with the stats of the run through
-		currentBuildOrder.time = gameTime;
-		currentBuildOrder.resourceScore = resourceScore;
-		currentBuildOrder.numBuildFailures = numFailures;
-		currentBuildOrder.killScore = killScore;
+		currentBuildOrder.setScore(gameTime, resourceScore, numFailures, killScore);
 		
 		updateBuildOrderInKB(currentBuildOrder);
 
@@ -119,36 +127,35 @@ public class ControlCenter extends DefaultBWListener {
 			Scanner in = new Scanner(knowledgeBase);
 			Gson gson = new Gson();
 
-			ArrayList<String> kbLines = new ArrayList<String>();
-			while (in.hasNextLine()) {
-				String line = in.nextLine();
-				System.out.println("Adding line to file: " + line);
-				kbLines.add(line);
-			}
+			KnowledgeBaseObject kb = gson.fromJson(in.nextLine(), KnowledgeBaseObject.class);
 			in.close();
 
 			BufferedWriter writer = new BufferedWriter(new FileWriter(
 					knowledgeBase, false));
-			// TODO: Could make more efficient and stop serializing objects once
-			// the correct build order has been updated
-			for (String line : kbLines) {
-				if (line.substring(0, line.indexOf(":")).equals("Index")) {
-					int index = Integer.parseInt(line.substring(line
-							.indexOf(":") + 1));
-					index++;
-					writer.write("Index:" + index);
-				} else if (isJsonBuildOrder(line)) {
-					BuildOrder temp = gson.fromJson(line, BuildOrder.class);
-					if (temp.id == current.id) {
-						writer.write(gson.toJson(current));
-					} else {
-						writer.write(gson.toJson(temp));
-					}
-				} else {
-					writer.write(line);
-				}
-				writer.newLine();
+			
+			kb.orders.set(kb.index, current);
+			kb.index++;
+			if (kb.index >= NUM_BUILD_ORDERS) {
+				//kb.readyToMutate = true;
+				
+				// Store what we did for this first iteration
+				File knowledgeBaseIteration = new File("./iteration" + buildOrderIteration++ + ".txt");
+				BufferedWriter writer2 = new BufferedWriter(new FileWriter(
+						knowledgeBaseIteration, false));
+				writer2.write(gson.toJson(kb));
+				writer2.newLine();
+				Gson gsonPretty = new GsonBuilder().setPrettyPrinting().create();
+				writer2.write(gsonPretty.toJson(kb));
+				writer2.newLine();
+				writer2.close();
+				
+				// Then naturally select the new orders
+				forceNaturalSelection(kb);
 			}
+			else {
+				writer.write(gson.toJson(kb));
+			}
+			
 			writer.close();
 
 		} catch (IOException e) {
@@ -197,81 +204,84 @@ public class ControlCenter extends DefaultBWListener {
 
 			// Get the index of the build order we want to load:
 			String line = in.nextLine();
-			int index = Integer.parseInt(line.substring(line.indexOf(":") + 1));
-			System.out.println("Loading index: " + index);
-
-			// Find the correct build order to load
-			if (index < ITERATION_COUNT) {
-				loadBuildOrderFromFile(in, index);
-			} else {
-				ITERATION_COUNT += ITERATION_COUNT;
-				buildOrderIteration = index;
-				try {
-					Files.copy(Paths.get(knowledgeBasePath), Paths.get("./savedKB_" + index + ".txt"));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				forceNaturalSelection(in);
+			Gson gson = new Gson();
+			KnowledgeBaseObject kb = gson.fromJson(line, KnowledgeBaseObject.class);
+			
+			if (kb.readyToMutate) {
+				// Store what we did for this first iteration
+//				File knowledgeBaseIteration = new File(knowledgeBasePath + "_iteration" + buildOrderIteration++);
+//				BufferedWriter writer = new BufferedWriter(new FileWriter(
+//						knowledgeBaseIteration, false));
+//				writer.write(gson.toJson(kb));
+//				writer.newLine();
+//				Gson gsonPretty = new GsonBuilder().setPrettyPrinting().create();
+//				writer.write(gsonPretty.toJson(kb));
+//				writer.newLine();
+//				writer.close();
+//				
+//				// Then naturally select the new orders
+//				forceNaturalSelection(kb);
 			}
-
+			else {
+				loadBuildOrderFromFile(kb);
+			}
+			
 			in.close();
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
-	// TODO: Write function to take the top build orders to survive natural
-	// selection
-	// Input: scanner coming in pointed at the first buildOrder line in the file
-	public void forceNaturalSelection(Scanner in) {
-		Gson gson = new Gson();
-		ArrayList<BuildOrder> allOrders = new ArrayList<BuildOrder>();
-		ArrayList<BuildOrder> ordersToSave = new ArrayList<BuildOrder>();
-
-		while (in.hasNextLine()) {
-			BuildOrder temp = gson.fromJson(in.nextLine(), BuildOrder.class);
-			allOrders.add(temp);
+	
+	public int findNext12(int n) {
+		if (n % 12 == 0) {
+			return n;
 		}
+		
+		return (12 - (n % 12)) + n; 
+	}
+	
+	public void forceNaturalSelection(KnowledgeBaseObject kb) {
+		ArrayList<BuildOrder> ordersToSave = new ArrayList<BuildOrder>();
+		ArrayList<BuildOrder> allOrders = new ArrayList<BuildOrder>(kb.orders);
+		
+		
 		for (int i = 0; i < NUM_ORDERS_PRESERVED; i++) {
 			// Find the highest scoring build order, preserve it, remove it from
 			// the initial list
 			int highest = -100000;
 			BuildOrder temp = null;
 			for (BuildOrder order : allOrders) {
-				int score = order.time + order.resourceScore - order.numBuildFailures;
-				if (score > highest) {
-					highest = score;
+				if (order.score > highest) {
+					highest = order.score;
 					temp = order;
 				}
 			}
 			ordersToSave.add(temp);
 			allOrders.remove(temp);
 		}
-
+		
 		createNextGeneration(ordersToSave);
-
+		
 		try {
 			File knowledgeBase = new File(knowledgeBasePath);
 			Scanner newScanner = new Scanner(knowledgeBase);
 			// Get the index of the build order we want to load:
 			String line = newScanner.nextLine();
-			int index = Integer.parseInt(line.substring(line.indexOf(":") + 1));
-			System.out.println("Loading index: " + index);
+			Gson gson = new Gson();
+			KnowledgeBaseObject newKB = gson.fromJson(line, KnowledgeBaseObject.class);
+			System.out.println("Loading index: " + newKB.index);
 
-			loadBuildOrderFromFile(newScanner, index);
+			loadBuildOrderFromFile(newKB);
+			newScanner.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	public void createNextGeneration(ArrayList<BuildOrder> orders) {
 		Gson gson = new Gson();
 
-		System.out
-				.println("The following build orders will survive in the gene pool: ");
+		System.out.println("The following build orders will survive in the gene pool: ");
 		for (BuildOrder order : orders) {
 			System.out.println(gson.toJson(order));
 		}
@@ -280,20 +290,15 @@ public class ControlCenter extends DefaultBWListener {
 			File knowledgeBase = new File(knowledgeBasePath);
 			BufferedWriter writer = new BufferedWriter(new FileWriter(
 					knowledgeBase, false));
-			writer.write("Index:" + buildOrderIteration);
-			writer.newLine();
-
-			// TODO: Write all the new build orders to the file with an id of
-			// buildOrderIteration++
+			KnowledgeBaseObject kb = new KnowledgeBaseObject();
+			kb.index = 0;
+			kb.readyToMutate = false;
+			kb.orders = new ArrayList<BuildOrder>();
 
 			// Keep the original 3 winners, but update their index
 			for (BuildOrder order : orders) {
-				order.id = buildOrderIteration++;
-				order.time = -1;
-				order.resourceScore = -1;
-				order.killScore = 0;
-				writer.write(gson.toJson(order));
-				writer.newLine();
+				order.score = -1;
+				kb.orders.add(order);
 			}
 
 			System.out.println("Cross Breeding...");
@@ -305,34 +310,28 @@ public class ControlCenter extends DefaultBWListener {
 					}
 					System.out.println(first + " mating " + second);
 					BuildOrder newOrder = new BuildOrder();
-					newOrder.id = buildOrderIteration++;
-					newOrder.time = -1;
-					newOrder.resourceScore = -1;
-					newOrder.killScore = 0;
+					newOrder.score = -1;
 					newOrder.order = crossBreed(first.order, second.order);
-					writer.write(gson.toJson(newOrder));
-					writer.newLine();
+					kb.orders.add(newOrder);
 				}
 			}
 
 			BuildOrder one = orders.get(0);
-			one.id = buildOrderIteration++;
-			one.time = -1;
-			one.resourceScore = -1;
 			one.order = mutate(one.order);
+			one.score = -1;
+			kb.orders.add(one);
 			BuildOrder two = orders.get(1);
-			two.id = buildOrderIteration++;
-			two.time = -1;
-			two.resourceScore = -1;
 			two.order = mutate(two.order);
-
-			writer.write(gson.toJson(one));
-			writer.newLine();
-			writer.write(gson.toJson(two));
-			writer.newLine();
+			two.score = -1;
+			kb.orders.add(two);
+			BuildOrder three = orders.get(2);
+			three.order = mutate(two.order);
+			three.score = -1;
+			kb.orders.add(three);
 
 			// Flip 2 random moves in the original 3 to add some mutation to
 			// the mix
+			writer.write(gson.toJson(kb));
 
 			writer.close();
 		} catch (IOException e) {
@@ -371,43 +370,40 @@ public class ControlCenter extends DefaultBWListener {
 		// order
 		BufferedWriter writer = new BufferedWriter(
 				new FileWriter(knowledgeBase));
-		writer.write("Index:0");
-		writer.newLine();
-
+		
+		KnowledgeBaseObject kb = new KnowledgeBaseObject();
+		kb.index = 0;
+		kb.orders = new ArrayList<BuildOrder>();
+		kb.readyToMutate = false;
+		
 		Random random = new Random();
 		for (int i = 0; i < NUM_BUILD_ORDERS; i++) {
 			BuildOrder buildOrder = new BuildOrder();
-			buildOrder.id = buildOrderIteration++;
-			buildOrder.time = -1;
-			buildOrder.resourceScore = -1;
-			buildOrder.numBuildFailures = -1;
+			buildOrder.score = -1;
 			buildOrder.order = new ArrayList<String>();
 
 			for (int j = 0; j < INITIAL_BUILD_LENGTH; j++) {
 				int randIndex = random.nextInt(UNIT_TYPES.length);
 				buildOrder.order.add(UNIT_TYPES[randIndex]);
 			}
-
-			Gson gson = new Gson();
-			String buildOrderJson = gson.toJson(buildOrder);
-			writer.write(buildOrderJson);
-			writer.newLine();
+			kb.orders.add(buildOrder);
 		}
+		
+		Gson gson = new Gson();
+		String buildOrderJson = gson.toJson(kb);
+		writer.write(buildOrderJson);
+		writer.newLine();
 
 		writer.close();
 	}
 
 	// Loads a build order given a scanner to the file and the index of the
 	// build order
-	public void loadBuildOrderFromFile(Scanner in, int index) {
-		Gson gson = new Gson();
-		currentBuildOrder = gson.fromJson(in.nextLine(), BuildOrder.class);
-		while (currentBuildOrder.id != index) {
-			currentBuildOrder = gson.fromJson(in.nextLine(), BuildOrder.class);
-		}
-
+	public void loadBuildOrderFromFile(KnowledgeBaseObject kb) {
+		currentBuildOrder = kb.orders.get(kb.index);
+		
 		// Load the build order
-		System.out.println("Build Order from file: " + currentBuildOrder.id);
+		System.out.println("Build Order from file: " + kb.index);
 		for (String unit : currentBuildOrder.order) {
 			UnitType unitType = null;
 			System.out.println(unit);
@@ -433,7 +429,7 @@ public class ControlCenter extends DefaultBWListener {
 			}
 		}
 	}
-
+	
 	public Unit requestUnit(UnitType unitType) {
 		Unit requestedUnit = null;
 		requestedUnit = resourceManager.takeUnit(unitType);
