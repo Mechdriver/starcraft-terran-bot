@@ -1,94 +1,67 @@
 package defense;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import overmind.ControlCenter;
-import scout.ScoutManager;
-import build.BuildRequest;
 import bwapi.DefaultBWListener;
-import bwapi.Game;
 import bwapi.Unit;
 import bwapi.UnitType;
 
-public class DefenseManager extends DefaultBWListener{
-	private Game myGame;
-	private ControlCenter motherBrain;
-	private boolean depot = false;
-	private int reqs = 0;
-	private int supRatio = 0;
-	private BuildRequest squadReq;
-	private ArrayList<Unit> squadList = new ArrayList<Unit>();
-	
-	private Unit target = null;
-	
-	private static int maxSize = 20;
-	
-	public DefenseManager(Game game) {
-		myGame = game;
-	}
-	
+public class DefenseManager extends DefaultBWListener {
+	private List<Unit> bunkers;
+	private List<Unit> marines;
+
 	@Override
 	public void onStart() {
-		System.out.println("Defense Manager initialized.");
+		bunkers = new ArrayList<Unit>();
+		marines = new ArrayList<Unit>();
 	}
-	
+
 	@Override
-	public void onUnitDestroy(Unit unit) {
+	public void onUnitComplete(Unit unit) {
 		if (unit.getType() == UnitType.Terran_Marine) {
-			reqs--;
-			squadList.remove(unit);
+			marines.add(unit);
+		}
+		if (unit.getType() == UnitType.Terran_Bunker) {
+			bunkers.add(unit);
 		}
 	}
-	
+
 	@Override
 	public void onFrame() {
-		if (motherBrain != null && !depot) {
-			motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Supply_Depot));
-			depot = true;
+		if (marines.isEmpty()) {
+			return;
 		}
-		
-		if (motherBrain != null && reqs < maxSize) {
-			squadReq = new BuildRequest(UnitType.Terran_Marine);
-			squadReq = squadReq.withUnitOutput(squadList);
-			motherBrain.submitRequest(squadReq);
-			reqs++;
-			supRatio++;
-			
-			if (supRatio == 5) {
-				motherBrain.submitRequest(new BuildRequest(UnitType.Terran_Supply_Depot));
-				supRatio = 0;
+		List<Unit> deadMarines = new ArrayList<Unit>();
+		Unit unloadedMarine = null;
+		for (Unit marine : marines) {
+			if (marine.getType() == UnitType.Unknown) {
+				// He's dead, Jim!
+				deadMarines.add(marine);
+			} else if (!marine.isLoaded()) {
+				unloadedMarine = marine;
 			}
 		}
-		
-		/*if (squadSize() > 0) {
-			ArrayList<Unit> tempList = new ArrayList<Unit>(squadList);
-			
-			for (Unit joe : tempList) {
-				if (joe.getHitPoints() == 0) {
-					squadList.remove(joe);
-				}
-			}
-		}*/
-		
-		if (target == null || target.getHitPoints() == 0) {
-			if (!myGame.enemy().getUnits().isEmpty()) {
-				target = myGame.enemy().getUnits().get(0);
+		for (Unit marine : deadMarines) {
+			marines.remove(marine);
+		}
+
+		if (bunkers.isEmpty()) {
+			return;
+		}
+		List<Unit> deadBunkers = new ArrayList<Unit>();
+		Unit openBunker = null;
+		for (Unit bunker : bunkers) {
+			if (bunker.getType() == UnitType.Unknown) {
+				deadBunkers.add(bunker);
+			} else if (bunker.getLoadedUnits().size() < 4) {
+				openBunker = bunker;
 			}
 		}
-		
-		if (!myGame.enemy().getUnits().isEmpty()) {
-			
-			for (Unit joe : squadList) {
-				joe.attack(target);
-			}
+
+		if (unloadedMarine != null && unloadedMarine.isIdle()
+				&& openBunker != null) {
+			unloadedMarine.rightClick(openBunker);
 		}
-	}
-	
-	private int squadSize() {
-		return squadList.size();
-	}
-	
-	public void setControlCenter(ControlCenter control) {
-		motherBrain = control;
 	}
 }

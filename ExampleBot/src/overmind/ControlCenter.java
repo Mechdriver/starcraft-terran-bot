@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -30,14 +32,27 @@ public class ControlCenter extends DefaultBWListener {
 	private ResourceManager resourceManager;
 	// private ScoutManager scoutManager;
 	private BuildManager buildManager;
-	private TechManager techManager;
-//	private AttackManager attackManager;
+//	private TechManager techManager;
+	// private AttackManager attackManager;
 	// Constants for genetic algorithm
 	public static final String knowledgeBasePath = "./knowledgebase.txt";
 	public static final int NUM_BUILD_ORDERS = 12;
 	public static final int NUM_ORDERS_PRESERVED = 3;
 	public static final int INITIAL_BUILD_LENGTH = 20;
-	public static final String[] UNIT_TYPES = {"SCV", "Barracks", "Marine", "SupplyDepot", "Refinery"};
+	public static final Map<String, UnitType> UNIT_MAP = new HashMap<>();
+
+	static {
+		UNIT_MAP.put("SCV", UnitType.Terran_SCV);
+		UNIT_MAP.put("Barracks", UnitType.Terran_Barracks);
+		UNIT_MAP.put("Marine", UnitType.Terran_Marine);
+		UNIT_MAP.put("SupplyDepot", UnitType.Terran_Supply_Depot);
+		UNIT_MAP.put("Refinery", UnitType.Terran_Refinery);
+		UNIT_MAP.put("Bunker", UnitType.Terran_Bunker);
+
+		UNIT_TYPES = UNIT_MAP.keySet().toArray(new String[UNIT_MAP.size()]);
+	}
+
+	public static final String[] UNIT_TYPES;
 	// Other global vars for genetic algorithm
 	BuildOrder currentBuildOrder;
 	public int buildOrderIteration = 0;
@@ -70,7 +85,7 @@ public class ControlCenter extends DefaultBWListener {
 	
 
 	public ControlCenter(Game game, ResourceManager resourceManager,
-		BuildManager buildManager, TechManager techManager) {
+			BuildManager buildManager, TechManager techManager) {
 		this.game = game;
 		this.self = game.self();
 		this.resourceManager = resourceManager;
@@ -79,8 +94,8 @@ public class ControlCenter extends DefaultBWListener {
 		// this.scoutManager = scoutManager;
 
 		this.buildManager = buildManager;
-		this.techManager = techManager;
-//		this.attackManager = attackManager;
+//		this.techManager = techManager;
+		// this.attackManager = attackManager;
 	}
 
 	@Override
@@ -115,7 +130,7 @@ public class ControlCenter extends DefaultBWListener {
 
 		// Update the currentBuild order with the stats of the run through
 		currentBuildOrder.setScore(gameTime, resourceScore, numFailures, killScore);
-		
+
 		updateBuildOrderInKB(currentBuildOrder);
 
 	}
@@ -405,27 +420,15 @@ public class ControlCenter extends DefaultBWListener {
 		// Load the build order
 		System.out.println("Build Order from file: " + kb.index);
 		for (String unit : currentBuildOrder.order) {
-			UnitType unitType = null;
-			System.out.println(unit);
-			if (unit.equals("SCV")) {
-				unitType = UnitType.Terran_SCV;
-			} else if (unit.equals("Marine")) {
-				unitType = UnitType.Terran_Marine;
-			} else if (unit.equals("Barracks")) {
-				unitType = UnitType.Terran_Barracks;
-			} else if (unit.equals("SupplyDepot")) {
-				unitType = UnitType.Terran_Supply_Depot;
-			} else if (unit.equals("Refinery")) {
-				unitType = UnitType.Terran_Refinery;
-			} else {
-				System.out
-						.println("Something went terribly wrong in the build order: "
-								+ unitType);
-			}
+			UnitType unitType = UNIT_MAP.get(unit);
 
 			if (unitType != null) {
 				buildManager.submitBuildRequest(new BuildRequest(unitType)
 						.withBuildLocation(self.getStartLocation()));
+			} else {
+				System.out
+						.println("Something went terribly wrong in the build order: "
+								+ unitType);
 			}
 		}
 	}
