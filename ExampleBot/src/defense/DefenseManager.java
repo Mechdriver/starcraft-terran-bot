@@ -55,7 +55,9 @@ public class DefenseManager extends DefaultBWListener {
 			if (bunker.getType() == UnitType.Unknown) {
 				deadBunkers.add(bunker);
 			} else if (bunker.getLoadedUnits().size() < 4) {
-				openBunker = bunker;
+				if (openBunker == null) {
+					openBunker = bunker;
+				}
 			}
 		}
 

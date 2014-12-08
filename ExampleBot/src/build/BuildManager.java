@@ -152,6 +152,10 @@ public class BuildManager extends DefaultBWListener {
 			message.append("\n");
 		}
 		game.drawTextScreen(0, 250, message.toString());
+		
+		if (pendingRequests.isEmpty() && startedRequests.isEmpty()) {
+			submitBuildRequest(new BuildRequest(UnitType.Terran_Marine));
+		}
 
 		// Check for requests that need to be restarted
 		for (StartedBuildRequest request : startedRequests) {

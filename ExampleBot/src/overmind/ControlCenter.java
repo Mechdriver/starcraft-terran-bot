@@ -46,7 +46,6 @@ public class ControlCenter extends DefaultBWListener {
 		UNIT_MAP.put("Barracks", UnitType.Terran_Barracks);
 		UNIT_MAP.put("Marine", UnitType.Terran_Marine);
 		UNIT_MAP.put("SupplyDepot", UnitType.Terran_Supply_Depot);
-		//UNIT_MAP.put("Refinery", UnitType.Terran_Refinery);
 		UNIT_MAP.put("Bunker", UnitType.Terran_Bunker);
 
 		UNIT_TYPES = UNIT_MAP.keySet().toArray(new String[UNIT_MAP.size()]);
