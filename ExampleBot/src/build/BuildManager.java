@@ -25,7 +25,7 @@ public class BuildManager extends DefaultBWListener {
 	private List<StartedBuildRequest> startedRequests = new ArrayList<StartedBuildRequest>();
 	private List<StartedBuildRequest> finishedRequests = new ArrayList<StartedBuildRequest>();
 	private List<BuildQueue> buildings = new ArrayList<BuildQueue>();
-	
+
 	private int buildFailures = 0;
 
 	private int startedMinerals = 0;
@@ -39,7 +39,7 @@ public class BuildManager extends DefaultBWListener {
 	public void setControlCenter(ControlCenter control) {
 		this.control = control;
 	}
-	
+
 	public int getBuildFailures() {
 		return buildFailures;
 	}
@@ -92,7 +92,7 @@ public class BuildManager extends DefaultBWListener {
 		if (unit.getType() == UnitType.Terran_Command_Center) {
 			buildings.add(new BuildQueue(unit, UnitType.Terran_SCV));
 		}
-		
+
 		for (BuildQueue building : buildings) {
 			if (building.remove(unit)) {
 				break;
@@ -137,14 +137,14 @@ public class BuildManager extends DefaultBWListener {
 
 		game.drawTextScreen(200, 25, "Started Minerals: " + startedMinerals
 				+ "\nStarted Gas: " + startedGas);
-		
+
 		message = new StringBuilder("Building Queues:\n");
 		for (BuildQueue queue : buildings) {
-			
+
 			// YO KEEP THIS AROUND
 			buildFailures += (queue.check() ? 0 : 1);
 			// YO KEEP THAT AROUND
-			
+
 			message.append(queue.getBuilding().getType() + ": ");
 			for (UnitType u : queue.getQueue()) {
 				message.append(u + ", ");
@@ -152,8 +152,6 @@ public class BuildManager extends DefaultBWListener {
 			message.append("\n");
 		}
 		game.drawTextScreen(0, 250, message.toString());
-		
-
 
 		// Check for requests that need to be restarted
 		for (StartedBuildRequest request : startedRequests) {
@@ -220,18 +218,19 @@ public class BuildManager extends DefaultBWListener {
 			pendingRequests.remove(request);
 		} else {
 			System.out.println("Fail: " + request.getUnit());
+			control.releaseUnit(worker);
 			buildFailures += 1;
 		}
 	}
 
 	private void trainUnit(BuildRequest request) {
 		UnitType unitToBuild = request.getUnit();
-		
+
 		List<BuildQueue> queues = new ArrayList<BuildQueue>();
 		for (BuildQueue building : buildings) {
-//			System.out.println("Can " + building.getBuilding().getType()
-//					+ " train " + unitToBuild + "? "
-//					+ building.canBuild(unitToBuild));
+			// System.out.println("Can " + building.getBuilding().getType()
+			// + " train " + unitToBuild + "? "
+			// + building.canBuild(unitToBuild));
 			if (building.canBuild(unitToBuild)) {
 				queues.add(building);
 			}

@@ -5,12 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import defense.DefenseManager;
 import overmind.ControlCenter;
 import resources.ResourceManager;
-import scout.ScoutManager;
 import tech.TechManager;
-import attack.AttackManager;
 import build.BuildManager;
 import bwapi.DefaultBWListener;
 import bwapi.Game;
@@ -18,6 +15,7 @@ import bwapi.Mirror;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwta.BWTA;
+import defense.DefenseManager;
 
 
 public class TerranBotDriver {
@@ -168,9 +166,6 @@ public class TerranBotDriver {
 					listener.onUnitShow(unit);
 				}
 			}
-			
-			
-			// TODO: any other methods that modules want access to should be overridden here in the same way as onFrame()
 		});
 		
 		mirror.startGame();

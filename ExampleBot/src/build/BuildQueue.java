@@ -8,11 +8,11 @@ import bwapi.Unit;
 import bwapi.UnitType;
 
 public class BuildQueue implements Comparable<BuildQueue> {
-	
+
 	private List<UnitType> queue;
 	private List<UnitType> ableToBuild;
 	private Unit building;
-	
+
 	public BuildQueue(Unit building, UnitType... ableToBuild) {
 		this.building = building;
 		this.ableToBuild = Arrays.asList(ableToBuild);
@@ -24,13 +24,22 @@ public class BuildQueue implements Comparable<BuildQueue> {
 	}
 
 	public boolean remove(Unit unit) {
-		System.out.println("Remaining train time for " + building.getType() 
-				+ ": " + building.getRemainingTrainTime());
-		System.out.println("Total train time for " + unit.getType() 
-				+ ": " + unit.getType().buildTime());
-		if (building.getRemainingTrainTime() != 0
-				|| queue.isEmpty()
-				|| unit.getType() != queue.get(0)) {
+		int tolerance = 20;
+		int remaining = building.getRemainingTrainTime();
+		boolean buildIsDone = false;
+		if (remaining != 0) {
+			for (UnitType type : ableToBuild) {
+				if (type.buildTime() - tolerance <= remaining
+						&& remaining <= type.buildTime()) {
+					buildIsDone = true;
+					break;
+				}
+			}
+		} else {
+			buildIsDone = true;
+		}
+
+		if (!buildIsDone || queue.isEmpty() || unit.getType() != queue.get(0)) {
 			return false;
 		}
 		queue.remove(0);
@@ -39,16 +48,16 @@ public class BuildQueue implements Comparable<BuildQueue> {
 
 	public void add(UnitType unit) {
 		queue.add(unit);
-//		if (queue.size() == 1) {
-//			System.out.println("BUILDING " + unit + " NOW (from add)");
-//			building.train(unit);
-//		}
+		// if (queue.size() == 1) {
+		// System.out.println("BUILDING " + unit + " NOW (from add)");
+		// building.train(unit);
+		// }
 	}
-	
+
 	public List<UnitType> getQueue() {
 		return queue;
 	}
-	
+
 	public boolean check() {
 		// If there's something in the queue and we aren't building
 		if (!queue.isEmpty() && !building.isTraining()) {
@@ -57,19 +66,17 @@ public class BuildQueue implements Comparable<BuildQueue> {
 		}
 		return true;
 	}
-	
+
 	public Unit getBuilding() {
 		return building;
 	}
-	
+
 	public boolean canBuild(UnitType unit) {
 		return ableToBuild.contains(unit);
 	}
 
 	@Override
 	public int compareTo(BuildQueue other) {
-		System.out.println("This: " + this.queue.size()
-				+ ", Other: " + other.queue.size());
 		return this.queue.size() - other.queue.size();
 	}
 }
