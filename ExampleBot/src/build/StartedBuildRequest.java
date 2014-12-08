@@ -4,7 +4,7 @@ import bwapi.Unit;
 
 public class StartedBuildRequest {
 
-	private static final int DEFAULT_RESUBMIT_COUNTDOWN = 100;
+	private static final int DEFAULT_RESUBMIT_COUNTDOWN = 10;
 
 	private BuildRequest request;
 	private Unit worker;

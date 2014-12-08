@@ -46,7 +46,7 @@ public class ControlCenter extends DefaultBWListener {
 		UNIT_MAP.put("Barracks", UnitType.Terran_Barracks);
 		UNIT_MAP.put("Marine", UnitType.Terran_Marine);
 		UNIT_MAP.put("SupplyDepot", UnitType.Terran_Supply_Depot);
-		UNIT_MAP.put("Refinery", UnitType.Terran_Refinery);
+		//UNIT_MAP.put("Refinery", UnitType.Terran_Refinery);
 		UNIT_MAP.put("Bunker", UnitType.Terran_Bunker);
 
 		UNIT_TYPES = UNIT_MAP.keySet().toArray(new String[UNIT_MAP.size()]);
@@ -77,6 +77,7 @@ public class ControlCenter extends DefaultBWListener {
 		public List<BuildOrder> orders;
 		public int index;
 		public boolean readyToMutate;
+		public int iterationNum;
 		
 		public KnowledgeBaseObject () {
 			
@@ -154,7 +155,7 @@ public class ControlCenter extends DefaultBWListener {
 				//kb.readyToMutate = true;
 				
 				// Store what we did for this first iteration
-				File knowledgeBaseIteration = new File("./iteration" + buildOrderIteration++ + ".txt");
+				File knowledgeBaseIteration = new File("./iteration" + kb.iterationNum + ".txt");
 				BufferedWriter writer2 = new BufferedWriter(new FileWriter(
 						knowledgeBaseIteration, false));
 				writer2.write(gson.toJson(kb));
@@ -307,6 +308,7 @@ public class ControlCenter extends DefaultBWListener {
 					knowledgeBase, false));
 			KnowledgeBaseObject kb = new KnowledgeBaseObject();
 			kb.index = 0;
+			kb.iterationNum = kb.iterationNum + 1;
 			kb.readyToMutate = false;
 			kb.orders = new ArrayList<BuildOrder>();
 
@@ -388,6 +390,7 @@ public class ControlCenter extends DefaultBWListener {
 		
 		KnowledgeBaseObject kb = new KnowledgeBaseObject();
 		kb.index = 0;
+		kb.iterationNum = 0;
 		kb.orders = new ArrayList<BuildOrder>();
 		kb.readyToMutate = false;
 		
