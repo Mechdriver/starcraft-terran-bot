@@ -28,6 +28,7 @@ import com.google.gson.GsonBuilder;
 public class ControlCenter extends DefaultBWListener {
 	private Game game;
 	private Player self;
+	private int iterNum;
 
 	private ResourceManager resourceManager;
 	// private ScoutManager scoutManager;
@@ -152,7 +153,7 @@ public class ControlCenter extends DefaultBWListener {
 			kb.index++;
 			if (kb.index >= NUM_BUILD_ORDERS) {
 				//kb.readyToMutate = true;
-				
+				iterNum = kb.iterationNum;
 				// Store what we did for this first iteration
 				File knowledgeBaseIteration = new File("./iteration" + kb.iterationNum + ".txt");
 				BufferedWriter writer2 = new BufferedWriter(new FileWriter(
@@ -307,7 +308,7 @@ public class ControlCenter extends DefaultBWListener {
 					knowledgeBase, false));
 			KnowledgeBaseObject kb = new KnowledgeBaseObject();
 			kb.index = 0;
-			kb.iterationNum = kb.iterationNum + 1;
+			kb.iterationNum = iterNum + 1;
 			kb.readyToMutate = false;
 			kb.orders = new ArrayList<BuildOrder>();
 
